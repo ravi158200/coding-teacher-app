@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import API from '../services/api';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, ArrowLeft, RefreshCw, CheckCircle2, XCircle } from 'lucide-react';
@@ -16,7 +16,7 @@ const Quiz = () => {
 
     useEffect(() => {
         const fetchCourse = async () => {
-            const { data } = await axios.get(`http://localhost:5003/api/courses/${courseId}`);
+            const { data } = await API.get(`/courses/${courseId}`);
             setCourse(data);
         };
         fetchCourse();
@@ -38,7 +38,17 @@ const Quiz = () => {
         }, 1000);
     };
 
-    if (!course) return <div className="container section-padding">Loading...</div>;
+    if (!course) return <div className="container section-padding" style={{ textAlign: 'center' }}><h2>Loading Quiz...</h2></div>;
+
+    if (!course.quizzes || course.quizzes.length === 0) {
+        return (
+            <div className="container section-padding" style={{ textAlign: 'center' }}>
+                <h1 style={{ marginBottom: '20px' }}>No Quiz Available</h1>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>This course doesn't have a final assessment quiz yet. Check back soon!</p>
+                <button onClick={() => navigate(-1)} className="btn btn-primary"><ArrowLeft size={18} /> Back to Course</button>
+            </div>
+        );
+    }
 
     return (
         <div className="container section-padding fade-in" style={{ maxWidth: '800px' }}>

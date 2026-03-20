@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, LogIn, Code2, Loader2, Sparkles, BookOpen, Users } from 'lucide-react';
+import { Mail, Lock, LogIn, Code2, Loader2, Sparkles, BookOpen, Users, Eye, EyeOff } from 'lucide-react';
 import class1 from '../assets/class1.png';
 import class2 from '../assets/class2.png';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const { login } = useAuth();
     const navigate = useNavigate();
@@ -119,14 +120,32 @@ const Login = () => {
                         <div style={{ position: 'relative' }}>
                             <Lock style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} size={18} />
                             <input 
-                                type="password" 
+                                type={showPassword ? "text" : "password"} 
                                 className="input-field" 
-                                style={{ paddingLeft: '45px' }} 
+                                style={{ paddingLeft: '45px', paddingRight: '45px' }} 
                                 placeholder="Password" 
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
                             />
+                            <button 
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                style={{
+                                    position: 'absolute',
+                                    right: '15px',
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    background: 'none',
+                                    border: 'none',
+                                    color: 'var(--text-secondary)',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
                         </div>
                         
                         <button type="submit" disabled={loading} className="btn btn-primary" style={{ padding: '16px', fontSize: '1.1rem', background: '#3b82f6', boxShadow: '0 10px 20px -5px rgba(59, 130, 246, 0.4)' }}>

@@ -12,13 +12,18 @@ const Profile = () => {
     const [editData, setEditData] = useState({});
     const [saveLoading, setSaveLoading] = useState(false);
     const [avatarLoading, setAvatarLoading] = useState(false);
+    const [upcomingClasses, setUpcomingClasses] = useState([]);
     const [feedback, setFeedback] = useState({ rating: 5, message: '' });
     const [feedbackSent, setFeedbackSent] = useState(false);
 
     useEffect(() => {
-        const fetchProfile = async () => {
+        const fetchProfileData = async () => {
             try {
-                const { data } = await API.get('/users/profile');
+                const [profileRes, classesRes] = await Promise.all([
+                    API.get('/users/profile'),
+                    API.get('/content?type=class')
+                ]);
+                const data = profileRes.data;
                 setProfileData(data);
                 setEditData({
                     name: data.name,
@@ -32,13 +37,14 @@ const Profile = () => {
                         twitter: data.socials?.twitter || ''
                     }
                 });
+                setUpcomingClasses(classesRes.data.slice(0, 5));
                 setLoading(false);
             } catch (error) {
-                console.error('Error fetching profile');
+                console.error('Error fetching profile data');
                 setLoading(false);
             }
         };
-        if (token) fetchProfile();
+        if (token) fetchProfileData();
     }, [token]);
 
     useEffect(() => {
@@ -322,11 +328,18 @@ const Profile = () => {
                                                 <p style={{ fontSize: '0.85rem', color: '#10b981', fontWeight: '700', marginBottom: '10px' }}>
                                                     Live Startup: {new Date(batch.startDate).toLocaleDateString()}
                                                 </p>
-                                                <Link to={`/lessons/${batch._id}/0`} style={{ textDecoration: 'none' }}>
-                                                    <button className="btn" style={{ background: 'var(--bg-accent)', fontSize: '0.85rem', padding: '8px 15px' }}>
-                                                        Join Batch Class <ArrowRight size={16} />
-                                                    </button>
-                                                </Link>
+                                                <div style={{ display: 'flex', gap: '10px' }}>
+                                                    <Link to={`/lessons/${batch._id}/0`} style={{ textDecoration: 'none', flex: 1 }}>
+                                                        <button className="btn" style={{ width: '100%', background: 'var(--bg-accent)', fontSize: '0.85rem', padding: '10px' }}>
+                                                            Join Batch <ArrowRight size={16} />
+                                                        </button>
+                                                    </Link>
+                                                    <Link to={`/certificate/${batch._id}`} style={{ textDecoration: 'none', flex: 1 }}>
+                                                        <button className="btn" style={{ width: '100%', background: 'var(--success)15', color: 'var(--success)', fontSize: '0.85rem', padding: '10px', border: '1px solid var(--success)30' }}>
+                                                            <Award size={16} /> Certificate
+                                                        </button>
+                                                    </Link>
+                                                </div>
                                             </div>
                                         </div>
                                     ))}
@@ -336,8 +349,39 @@ const Profile = () => {
 
                         {/* Column 2: Self-Paced Courses */}
                         <div>
-                            <h2 style={{ marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' }}><GraduationCap size={24} /> Standard Courses</h2>
-                            {enrolledStandard.length === 0 ? (
+                            <h2 id="courses" style={{ fontSize: '1.8rem', fontWeight: '800', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                            <Video size={28} color="#6366f1" strokeWidth={2.5} /> Upcoming Live Classes
+                        </h2>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '40px' }}>
+                            {upcomingClasses.length === 0 ? (
+                                <p style={{ color: 'var(--text-secondary)' }}>No live classes scheduled.</p>
+                            ) : upcomingClasses.map(cls => {
+                                const classDate = new Date(cls.classDate);
+                                const isLive = classDate <= new Date() && new Date(classDate.getTime() + 60*60*1000) >= new Date();
+                                const isUpcoming = classDate > new Date();
+                                return (
+                                    <div key={cls._id} className="glass-card" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: isLive ? '4px solid #ef4444' : 'none' }}>
+                                        <div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                                                {isLive ? <span style={{ background: '#ef4444', color: 'white', fontSize: '0.65rem', padding: '2px 8px', borderRadius: '4px', fontWeight: '800' }}>LIVE NOW</span> : 
+                                                 isUpcoming ? <span style={{ background: '#6366f1', color: 'white', fontSize: '0.65rem', padding: '2px 8px', borderRadius: '4px', fontWeight: '800' }}>UPCOMING</span> : 
+                                                 <span style={{ background: 'var(--bg-accent)', color: 'var(--text-secondary)', fontSize: '0.65rem', padding: '2px 8px', borderRadius: '4px', fontWeight: '800' }}>COMPLETED</span>}
+                                                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{classDate.toLocaleString()}</span>
+                                            </div>
+                                            <h4 style={{ fontSize: '1.1rem' }}>{cls.title}</h4>
+                                        </div>
+                                        <Link to={`/classroom/${cls._id}`} className="btn btn-primary" style={{ padding: '8px 20px', fontSize: '0.85rem' }}>
+                                            Join Classroom <ArrowRight size={16} />
+                                        </Link>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <h2 id="courses" style={{ fontSize: '1.8rem', fontWeight: '800', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                            <GraduationCap size={28} color="var(--accent-primary)" strokeWidth={2.5} /> Enrolled Cohorts
+                        </h2>
+    {enrolledStandard.length === 0 ? (
                                 <div className="glass-card" style={{ padding: '30px', textAlign: 'center', color: 'var(--text-secondary)' }}>
                                     No active courses. <Link to="/courses" style={{ color: 'var(--accent-primary)' }}>Browse library</Link>
                                 </div>
@@ -357,11 +401,20 @@ const Profile = () => {
                                                 <div style={{ background: 'var(--bg-accent)', height: '10px', borderRadius: '5px', overflow: 'hidden', marginBottom: '20px' }}>
                                                     <div style={{ height: '100%', background: 'var(--accent-primary)', width: `${progress}%`, transition: 'width 0.5s ease' }} />
                                                 </div>
-                                                <Link to={`/lessons/${course._id}/0`} style={{ textDecoration: 'none' }}>
-                                                    <button className="btn btn-primary" style={{ width: '100%', padding: '10px' }}>
-                                                        Resume Learning
-                                                    </button>
-                                                </Link>
+                                                <div style={{ display: 'flex', gap: '10px' }}>
+                                                    <Link to={`/lessons/${course._id}/0`} style={{ textDecoration: 'none', flex: 1 }}>
+                                                        <button className="btn btn-primary" style={{ width: '100%', padding: '12px', fontSize: '0.9rem' }}>
+                                                            {progress >= 100 ? 'Review Course' : 'Resume Learning'}
+                                                        </button>
+                                                    </Link>
+                                                    {progress >= 50 && (
+                                                        <Link to={`/certificate/${course._id}`} style={{ textDecoration: 'none', flex: 1 }}>
+                                                            <button className="btn" style={{ width: '100%', padding: '12px', fontSize: '0.9rem', background: 'var(--success)', color: 'white' }}>
+                                                                <Award size={18} /> Certificate
+                                                            </button>
+                                                        </Link>
+                                                    )}
+                                                </div>
                                             </div>
                                         );
                                     })}

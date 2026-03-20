@@ -22,7 +22,8 @@ const userSchema = new mongoose.Schema({
         of: [Number],
         default: {}
     },
-    role: { type: String, enum: ['student', 'teacher', 'admin'], default: 'student' }
+    role: { type: String, enum: ['student', 'teacher', 'admin'], default: 'student' },
+    isBlocked: { type: Boolean, default: false }
 }, { timestamps: true });
 
 userSchema.pre('save', async function () {

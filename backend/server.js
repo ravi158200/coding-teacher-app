@@ -6,6 +6,7 @@ const authRoutes = require('./routes/auth');
 const courseRoutes = require('./routes/course');
 const userRoutes = require('./routes/user');
 const enquiryRoutes = require('./routes/enquiry');
+const contentRoutes = require('./routes/content');
 const path = require('path');
 
 dotenv.config();
@@ -20,15 +21,16 @@ app.use('/api/auth', authRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/enquiries', enquiryRoutes);
+app.use('/api/content', contentRoutes);
 
 // Deployment Logic
 const __dirname_root = path.resolve();
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname_root, '/frontend/dist')));
-    app.get('*', (req, res) => 
+    app.get('/*', (req, res) => 
         res.sendFile(path.resolve(__dirname_root, 'frontend', 'dist', 'index.html'))
     );
-} else {
+} else { 
     app.get('/', (req, res) => {
         res.send('API is running...');
     });

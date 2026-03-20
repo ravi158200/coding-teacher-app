@@ -49,7 +49,7 @@ const Courses = () => {
                             <div style={{ padding: '24px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
                                     <span className="badge badge-primary">{course.category}</span>
-                                    <span style={{ fontWeight: '800', color: 'var(--accent-primary)', fontSize: '1.2rem' }}>${course.price}</span>
+                                    <span style={{ fontWeight: '800', color: 'var(--accent-primary)', fontSize: '1.2rem' }}>₹{course.price}</span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                     <h3 style={{ marginBottom: '10px', fontSize: '1.3rem', fontWeight: '700', flex: 1 }}>{course.title}</h3>

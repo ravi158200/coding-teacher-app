@@ -56,6 +56,21 @@ router.post('/', protect, teacher, async (req, res) => {
     }
 });
 
+// Teacher: Upload Course Thumbnail Image
+router.post('/:id/thumbnail', protect, teacher, upload.single('file'), async (req, res) => {
+    try {
+        const course = await Course.findById(req.params.id);
+        if (!course) return res.status(404).json({ message: 'Course not found' });
+        
+        const thumbnailUrl = `/uploads/${req.file.filename}`;
+        course.thumbnail = thumbnailUrl;
+        await course.save();
+        res.json({ message: 'Thumbnail uploaded successfully', thumbnailUrl });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 // Teacher: Upload File to Lesson (Video or PDF)
 router.post('/:id/lessons/:lessonIdx/upload', protect, teacher, upload.single('file'), async (req, res) => {
     try {
