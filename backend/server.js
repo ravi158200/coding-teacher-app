@@ -13,7 +13,24 @@ dotenv.config();
 connectDB();
 
 const app = express();
-app.use(cors());
+
+// Allow requests from Vercel frontend and localhost
+const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    /\.vercel\.app$/,
+];
+app.use(cors({
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, true); // allow non-browser requests (Postman, Render health checks)
+        const isAllowed = allowedOrigins.some(o =>
+            typeof o === 'string' ? o === origin : o.test(origin)
+        );
+        callback(isAllowed ? null : new Error('Not allowed by CORS'), isAllowed);
+    },
+    credentials: true,
+}));
+
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -23,18 +40,10 @@ app.use('/api/users', userRoutes);
 app.use('/api/enquiries', enquiryRoutes);
 app.use('/api/content', contentRoutes);
 
-// Deployment Logic
-const __dirname_root = path.resolve();
-if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(path.join(__dirname_root, '/frontend/dist')));
-    app.get('/*', (req, res) => 
-        res.sendFile(path.resolve(__dirname_root, 'frontend', 'dist', 'index.html'))
-    );
-} else { 
-    app.get('/', (req, res) => {
-        res.send('API is running...');
-    });
-}
+// Health check
+app.get('/', (req, res) => {
+    res.send('API is running...');
+});
 
 const PORT = process.env.PORT || 5003;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
