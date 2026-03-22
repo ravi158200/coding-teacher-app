@@ -4,24 +4,45 @@ import { Link } from 'react-router-dom';
 
 const slides = [
   {
-    image: '/assets/hero1.png',
+    image: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=3840&auto=format&fit=crop',
     title: 'Master the Art of Modern Engineering',
     description: 'Join the world\'s most immersive coding academy and build the software of tomorrow.',
     cta: 'Explore Academy',
     link: '/courses'
   },
   {
-    image: '/assets/hero2.png',
+    image: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=3840&auto=format&fit=crop',
     title: 'Learn from Industry Experts',
     description: 'Get direct mentorship from senior engineers at top tech companies around the globe.',
     cta: 'Meet Instructors',
     link: '/courses'
   },
   {
-    image: '/assets/hero3.png',
+    image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=3840&auto=format&fit=crop',
     title: 'Build a Portfolio That Wows',
     description: 'Go beyond theory. Work on real-world projects that recruiters actually care about.',
     cta: 'Join Live Batch',
+    link: '/courses'
+  },
+  {
+    image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=3840&auto=format&fit=crop',
+    title: 'Collaborative Learning Space',
+    description: 'Code alongside passionate peers in an environment that accelerates your learning curve.',
+    cta: 'View Community',
+    link: '/courses'
+  },
+  {
+    image: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=3840&auto=format&fit=crop',
+    title: 'Interactive Masterclasses',
+    description: 'Engage in live Q&A sessions, code reviews, and deep architectural architecture discussions.',
+    cta: 'See Live Classes',
+    link: '/courses'
+  },
+  {
+    image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=3840&auto=format&fit=crop',
+    title: 'Intensive Hands-on Practice',
+    description: 'Turn concepts into muscle memory with our grueling yet rewarding daily coding labs.',
+    cta: 'Start Practicing',
     link: '/courses'
   }
 ];
@@ -40,7 +61,7 @@ const HeroSlider = ({ onEnquiryClick }) => {
   const prevSlide = () => setCurrent(prev => (prev === 0 ? slides.length - 1 : prev - 1));
 
   return (
-    <div style={{ position: 'relative', height: '80vh', minHeight: '600px', width: '100%', overflow: 'hidden', background: '#000' }}>
+    <div style={{ position: 'relative', height: '80vh', minHeight: '600px', width: '100%', overflow: 'hidden', background: '#000', marginTop: '40px' }}>
       {slides.map((slide, idx) => (
         <div key={idx} style={{
           position: 'absolute', inset: 0, 

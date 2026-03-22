@@ -374,14 +374,8 @@ const AdminDashboard = () => {
 
   // ─── RENDER ────────────────────────────────────────────────────────────────
   return (
-    <div style={{ position: 'relative', minHeight: '100vh' }}>
+    <div className="bg-[#F4F6F9]" style={{ position: 'relative', minHeight: '100vh' }}>
       <DashboardStyles />
-      {/* Mesh Background for Dashboard */}
-      <div style={{
-          position: 'fixed', inset: 0, zIndex: -1,
-          background: 'radial-gradient(circle at 0% 0%, rgba(99,102,241,0.05) 0%, transparent 50%), radial-gradient(circle at 100% 100%, rgba(239,68,68,0.05) 0%, transparent 50%)',
-          pointerEvents: 'none'
-      }} />
 
       <div className="container section-padding fade-in" style={{ paddingTop: '40px' }}>
         {showContentForm && <ContentForm type={contentForm.type} />}
@@ -530,19 +524,19 @@ const AdminDashboard = () => {
           )}
           {courses.map(c => (
             <div key={c._id} className="glass-card admin-card-glow" style={{ padding: '24px', transition: 'all 0.3s ease' }}>
-              <div style={{ position: 'relative', width: '100%', height: '180px', borderRadius: '16px', overflow: 'hidden', marginBottom: '20px', boxShadow: '0 8px 16px -4px rgba(0,0,0,0.1)' }}>
-                <img src={c.thumbnail?.startsWith('http') ? c.thumbnail : `${ASSET_URL}${c.thumbnail}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={c.title} />
+              <div onClick={() => navigate(`/courses/${c._id}`)} style={{ cursor: 'pointer', position: 'relative', width: '100%', height: '180px', borderRadius: '16px', overflow: 'hidden', marginBottom: '20px', boxShadow: '0 8px 16px -4px rgba(0,0,0,0.1)' }}>
+                <img src={c.thumbnail?.startsWith('http') ? c.thumbnail : `${ASSET_URL}${c.thumbnail}`} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }} onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'} onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'} alt={c.title} />
                 <div style={{ position: 'absolute', top: '12px', right: '12px' }}>
                    <Badge color={c.isBatch ? '#f59e0b' : '#10b981'}>{c.isBatch ? 'BATCH' : 'VOD'}</Badge>
                 </div>
-                <label style={{ position: 'absolute', bottom: '12px', right: '12px', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', color: 'white', padding: '6px 12px', borderRadius: '10px', cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <label onClick={e => e.stopPropagation()} style={{ position: 'absolute', bottom: '12px', right: '12px', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', color: 'white', padding: '6px 12px', borderRadius: '10px', cursor: 'pointer', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Upload size={14} /> Update Cover
                   <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => handleThumbnailUpload(c._id, e.target.files[0])} />
                 </label>
               </div>
               <div style={{ marginBottom: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: '900', color: 'var(--text-primary)', lineHeight: 1.2 }}>{c.title}</h3>
+                  <h3 onClick={() => navigate(`/courses/${c._id}`)} style={{ cursor: 'pointer', fontSize: '1.25rem', fontWeight: '900', color: 'var(--text-primary)', lineHeight: 1.2 }}>{c.title}</h3>
                   {isAdmin && (
                     <button onClick={async () => { if (window.confirm('Delete this course?')) { await API.delete(`/courses/${c._id}`); fetchMyCourses(); } }} style={{ color: '#ef4444', background: 'rgba(239,68,68,0.1)', border: 'none', cursor: 'pointer', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Trash2 size={16} /></button>
                   )}

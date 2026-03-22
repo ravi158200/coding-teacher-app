@@ -30,9 +30,7 @@ const Login = () => {
         <div style={{ 
             display: 'flex', 
             minHeight: '100vh',
-            backgroundImage: 'linear-gradient(rgba(2, 6, 23, 0.8), rgba(2, 6, 23, 0.9)), url("/auth-bg.png")',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
+            backgroundColor: '#1E293B',
             fontFamily: 'var(--font-body)'
         }}>
             {/* Left Side: Preview Images & Branding */}

@@ -49,7 +49,8 @@ const CourseDetail = () => {
     if (!course) return <div className="container section-padding">Loading...</div>;
 
     return (
-        <div className="container section-padding fade-in">
+        <div className="bg-[#F4F6F9]" style={{ minHeight: '100vh' }}>
+            <div className="container section-padding fade-in">
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '50px' }}>
                 {/* Left Column */}
                 <div>
@@ -172,12 +173,13 @@ const CourseDetail = () => {
                     </div>
                 </div>
             </div>
-            <CheckoutModal 
-                isOpen={isCheckoutOpen} 
-                onClose={() => setIsCheckoutOpen(false)} 
-                course={course} 
-                onPaymentSuccess={handlePaymentComplete} 
-            />
+                <CheckoutModal 
+                    isOpen={isCheckoutOpen} 
+                    onClose={() => setIsCheckoutOpen(false)} 
+                    course={course} 
+                    onPaymentSuccess={handlePaymentComplete} 
+                />
+            </div>
         </div>
     );
 };

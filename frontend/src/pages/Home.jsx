@@ -61,8 +61,8 @@ const Home = () => {
     ];
 
     return (
-        <div className="fade-in">
-            <div className="mesh-bg" />
+        <div className="bg-[#F4F6F9] min-h-screen fade-in">
+            {/* Mesh background removed to show clean #F4F6F9 background */}
 
             
             <HeroSlider onEnquiryClick={() => setIsEnquiryOpen(true)} />

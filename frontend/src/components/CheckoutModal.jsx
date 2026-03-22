@@ -1,16 +1,25 @@
 import React, { useState } from 'react';
-import { X, CreditCard, ShieldCheck, CheckCircle, Loader2, Lock, Smartphone, Globe, Landmark, ChevronRight } from 'lucide-react';
+import { X, CreditCard, ShieldCheck, CheckCircle, Loader2, Lock, Smartphone, Globe, Landmark, ChevronRight, Download } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const CheckoutModal = ({ isOpen, onClose, course, onPaymentSuccess }) => {
+    const { user } = useAuth();
     const [step, setStep] = useState('billing'); // 'billing', 'processing', 'success'
     const [method, setMethod] = useState('card'); // 'card', 'upi', 'netbanking'
     const [cardData, setCardData] = useState({ number: '', expiry: '', cvc: '', name: '' });
     const [upiId, setUpiId] = useState('');
     const [selectedBank, setSelectedBank] = useState('');
+    const [mobile, setMobile] = useState('');
+    const [transactionId, setTransactionId] = useState('');
 
     if (!isOpen || !course) return null;
 
     const handlePayment = () => {
+        if (!mobile || mobile.length < 10) {
+            alert('Please enter a valid 10-digit mobile number.');
+            return;
+        }
+
         if (method === 'card') {
             if (!cardData.number || cardData.number.length < 16) {
                 alert('Please enter a valid 16-digit card number.');
@@ -36,14 +45,76 @@ const CheckoutModal = ({ isOpen, onClose, course, onPaymentSuccess }) => {
             }
         }
 
+        const newTxnId = 'TXN' + Math.floor(Math.random() * 90000000) + 10000000;
+        setTransactionId(newTxnId);
         setStep('processing');
         // Simulate network delay
         setTimeout(() => {
             setStep('success');
-            setTimeout(() => {
-                onPaymentSuccess(course._id);
-            }, 2000);
-        }, 2500);
+            // Removed automatic close to allow user to download PDF
+        }, 2000);
+    };
+
+    const handleDownloadPDF = () => {
+        const receiptWindow = window.open('', '_blank');
+        const studentName = user?.name || cardData.name || 'Student';
+        const studentEmail = user?.email || 'N/A';
+        const paymentDetail = method === 'card' ? `ending in ${cardData.number.slice(-4) || 'XXXX'}` : method === 'upi' ? upiId : selectedBank;
+        
+        receiptWindow.document.write(`
+            <html>
+                <head>
+                    <title>Payment Receipt - ${transactionId}</title>
+                    <style>
+                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 50px; color: #1e293b; max-width: 800px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; margin-top: 40px; }
+                        .header { border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; text-align: center; }
+                        h1 { color: #4f46e5; margin-bottom: 5px; }
+                        .details { margin-top: 30px; line-height: 2; font-size: 1.1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+                        .total { grid-column: 1 / -1; font-size: 1.6rem; font-weight: 800; margin-top: 30px; color: #10b981; padding: 20px; background: #f8fafc; border-radius: 10px; text-align: center; border: 1px dashed #cbd5e1; }
+                        .footer { margin-top: 50px; text-align: center; font-size: 0.9rem; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+                        .detail-group p { margin: 5px 0; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>Coding Classes Pvt. Ltd.</h1>
+                        <p>Official Payment Receipt (Tax Invoice)</p>
+                    </div>
+                    <div class="details">
+                        <div class="detail-group">
+                            <h3 style="color: #64748b; font-size: 0.9rem; text-transform: uppercase;">Student Details</h3>
+                            <p><strong>Name:</strong> ${studentName}</p>
+                            <p><strong>Email:</strong> ${studentEmail}</p>
+                            <p><strong>Mobile No:</strong> +91 ${mobile}</p>
+                        </div>
+                        <div class="detail-group">
+                            <h3 style="color: #64748b; font-size: 0.9rem; text-transform: uppercase;">Transaction Details</h3>
+                            <p><strong>Date/Time:</strong> ${new Date().toLocaleString()}</p>
+                            <p><strong>Transaction ID:</strong> ${transactionId}</p>
+                            <p><strong>Method:</strong> ${method.toUpperCase()} (${paymentDetail})</p>
+                        </div>
+                        
+                        <div class="total">
+                            Course Enrolled: ${course.title}<br/>
+                            <span style="font-size: 1.2rem; color: #64748b;">Total Paid: </span> ₹${course.price}.00
+                        </div>
+                    </div>
+                    <div class="footer">
+                        Organization: Coding Classes Pvt. Ltd. | Contact: support@codingclasses.com<br/>
+                        This is an electronically generated receipt and does not require a physical signature.
+                    </div>
+                    <script>
+                        window.onload = () => { 
+                            setTimeout(() => {
+                                window.print(); 
+                                window.close(); 
+                            }, 500);
+                        }
+                    </script>
+                </body>
+            </html>
+        `);
+        receiptWindow.document.close();
     };
 
     const methodTabStyle = (active) => ({
@@ -84,7 +155,7 @@ const CheckoutModal = ({ isOpen, onClose, course, onPaymentSuccess }) => {
                         </div>
 
                         {/* Method Selector */}
-                        <div style={{ display: 'flex', gap: '10px', marginBottom: '30px' }}>
+                        <div style={{ display: 'flex', gap: '10px', marginBottom: '25px' }}>
                             <div onClick={() => setMethod('card')} style={methodTabStyle(method === 'card')}>
                                 <CreditCard size={20} />
                                 <span>CARD</span>
@@ -97,6 +168,18 @@ const CheckoutModal = ({ isOpen, onClose, course, onPaymentSuccess }) => {
                                 <Landmark size={20} />
                                 <span>NET BANKING</span>
                             </div>
+                        </div>
+
+                        {/* Mobile Number Generic Input */}
+                        <div style={{ marginBottom: '20px' }}>
+                            <input 
+                                className="input-field" 
+                                placeholder="Billing Mobile Number (Required)" 
+                                value={mobile}
+                                onChange={(e) => setMobile(e.target.value.replace(/\D/g, ''))}
+                                maxLength="10"
+                                required
+                            />
                         </div>
 
                         {/* Payment Inputs */}
@@ -197,15 +280,41 @@ const CheckoutModal = ({ isOpen, onClose, course, onPaymentSuccess }) => {
                 )}
 
                 {step === 'success' && (
-                    <div style={{ textAlign: 'center', padding: '40px 0' }} className="fade-in">
-                        <div style={{ color: 'var(--success)', marginBottom: '30px' }}>
-                            <CheckCircle size={80} />
+                    <div style={{ textAlign: 'center', padding: '30px 0' }} className="fade-in">
+                        <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--success)', marginBottom: '20px' }}>
+                            <CheckCircle size={70} />
                         </div>
                         <h2 style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '10px' }}>Payment Successful!</h2>
-                        <p style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>Welcome to the platform. Redirecting to your dashboard...</p>
-                        <div style={{ background: 'var(--bg-secondary)', padding: '20px', borderRadius: '15px' }}>
-                            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Order ID: CH-{Math.floor(Math.random() * 90000) + 10000}</p>
-                            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '5px' }}>Mode: {method.toUpperCase()}</p>
+                        <p style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>Welcome aboard! Your course access is now active.</p>
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', alignItems: 'center' }}>
+                            <button 
+                                onClick={handleDownloadPDF}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: '8px',
+                                    background: 'var(--bg-secondary)',
+                                    color: 'var(--text-primary)',
+                                    border: '1px solid var(--border)',
+                                    padding: '12px 24px',
+                                    borderRadius: '12px',
+                                    fontWeight: '700',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    boxShadow: '0 5px 15px rgba(0,0,0,0.05)'
+                                }}
+                                onMouseEnter={(e) => e.target.style.borderColor = 'var(--accent-primary)'}
+                                onMouseLeave={(e) => e.target.style.borderColor = 'var(--border)'}
+                            >
+                                <Download size={18} /> Download Receipt (PDF)
+                            </button>
+
+                            <button 
+                                onClick={() => onPaymentSuccess(course._id)}
+                                className="btn btn-primary"
+                                style={{ width: '100%', padding: '16px', fontSize: '1.1rem', marginTop: '10px' }}
+                            >
+                                Continue to Course <ChevronRight size={18} />
+                            </button>
                         </div>
                     </div>
                 )}

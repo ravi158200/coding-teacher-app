@@ -1,13 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import API from '../services/api';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Search, Play, Star, Heart } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Courses = () => {
     const [courses, setCourses] = useState([]);
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
     const { user, toggleFavorite } = useAuth();
+
+    useEffect(() => {
+        const query = searchParams.get('search');
+        if (query !== null) {
+            setSearchTerm(query);
+        }
+    }, [searchParams]);
 
     useEffect(() => {
         const fetchCourses = async () => {
@@ -23,8 +31,9 @@ const Courses = () => {
     );
 
     return (
-        <div className="container section-padding fade-in">
-            <div style={{ marginBottom: '60px', textAlign: 'center' }}>
+        <div className="w-full min-h-screen bg-[#F4F6F9]">
+            <div className="container section-padding fade-in">
+                <div style={{ marginBottom: '60px', textAlign: 'center' }}>
                 <h1 style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '20px' }}>Explore Courses</h1>
                 <div style={{ display: 'flex', maxWidth: '600px', margin: '0 auto', gap: '15px' }}>
                     <div style={{ flex: 1, position: 'relative' }}>
@@ -35,7 +44,14 @@ const Courses = () => {
                             style={{ paddingLeft: '50px' }} 
                             placeholder="Search by title, category or instructor..." 
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e) => {
+                                setSearchTerm(e.target.value);
+                                if (e.target.value) {
+                                    setSearchParams({ search: e.target.value });
+                                } else {
+                                    setSearchParams({});
+                                }
+                            }}
                         />
                     </div>
                 </div>
@@ -81,6 +97,7 @@ const Courses = () => {
                         </div>
                     </Link>
                 ))}
+            </div>
             </div>
         </div>
     );

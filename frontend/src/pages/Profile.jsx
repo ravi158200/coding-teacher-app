@@ -113,6 +113,7 @@ const Profile = () => {
     const enrolledBatches = profileData.enrolledCourses?.filter(c => c.isBatch) || [];
 
     return (
+        <div className="bg-[#F4F6F9] min-h-screen w-full">
         <div className="container section-padding fade-in">
             {/* Header Section */}
             <div className="glass-card" style={{ padding: '50px', marginBottom: '40px', textAlign: 'center', position: 'relative' }}>
@@ -458,6 +459,7 @@ const Profile = () => {
                     </div>
                 </>
             )}
+        </div>
         </div>
     );
 };

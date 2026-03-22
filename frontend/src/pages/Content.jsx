@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import API from '../services/api';
 import { BookOpen, Megaphone, Search, Calendar, Eye, Tag } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 const typeConfig = {
   article:      { label: 'Article',      color: '#6366f1', icon: <BookOpen size={14} /> },
@@ -14,7 +14,13 @@ const Content = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
-  const [search, setSearch] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get('search') || '');
+
+  useEffect(() => {
+    const query = searchParams.get('search');
+    if (query !== null) setSearch(query);
+  }, [searchParams]);
 
   useEffect(() => {
     const fetch = async () => {
@@ -38,7 +44,8 @@ const Content = () => {
   const rest = filtered.filter(i => !i.isPinned);
 
   return (
-    <div className="container section-padding fade-in">
+    <div className="w-full min-h-screen bg-[#F4F6F9]">
+      <div className="container section-padding fade-in">
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: '50px' }}>
         <h1 style={{ fontSize: '3rem', fontWeight: '900', marginBottom: '16px' }}>
@@ -61,7 +68,11 @@ const Content = () => {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-accent)', padding: '10px 16px', borderRadius: '12px', gap: '10px', border: '1px solid var(--border)' }}>
           <Search size={16} color="var(--text-secondary)" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search content..." style={{ background: 'none', border: 'none', outline: 'none', color: 'var(--text-primary)', width: '200px' }} />
+          <input value={search} onChange={e => {
+              setSearch(e.target.value);
+              if (e.target.value) setSearchParams({ search: e.target.value });
+              else setSearchParams({});
+          }} placeholder="Search content..." style={{ background: 'none', border: 'none', outline: 'none', color: 'var(--text-primary)', width: '200px' }} />
         </div>
       </div>
 
@@ -93,6 +104,7 @@ const Content = () => {
           {rest.map(item => <ContentCard key={item._id} item={item} />)}
         </div>
       )}
+      </div>
     </div>
   );
 };

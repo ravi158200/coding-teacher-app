@@ -6,9 +6,11 @@ import class1 from '../assets/class1.png';
 import class2 from '../assets/class2.png';
 
 const Register = () => {
-    const [name, setName] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const { register } = useAuth();
@@ -16,9 +18,14 @@ const Register = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (password !== confirmPassword) {
+            alert("Passwords do not match!");
+            return;
+        }
         setLoading(true);
         try {
-            await register(name, email, password);
+            const fullName = `${firstName.trim()} ${lastName.trim()}`;
+            await register(fullName, email, password);
             navigate('/');
         } catch (error) {
             alert(error);
@@ -31,9 +38,7 @@ const Register = () => {
         <div style={{ 
             display: 'flex', 
             minHeight: '100vh',
-            backgroundImage: 'linear-gradient(rgba(2, 6, 23, 0.8), rgba(2, 6, 23, 0.9)), url("/auth-bg.png")',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
+            backgroundColor: '#1E293B',
             fontFamily: 'var(--font-body)'
         }}>
             {/* Left Side: Preview Images & Branding */}
@@ -106,17 +111,31 @@ const Register = () => {
                     </div>
 
                     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                        <div style={{ position: 'relative' }}>
-                            <User style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} size={18} />
-                            <input 
-                                type="text" 
-                                className="input-field" 
-                                style={{ paddingLeft: '45px' }} 
-                                placeholder="Full Name" 
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                required
-                            />
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                            <div style={{ position: 'relative' }}>
+                                <User style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} size={18} />
+                                <input 
+                                    type="text" 
+                                    className="input-field" 
+                                    style={{ paddingLeft: '45px' }} 
+                                    placeholder="First Name" 
+                                    value={firstName}
+                                    onChange={(e) => setFirstName(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div style={{ position: 'relative' }}>
+                                <User style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} size={18} />
+                                <input 
+                                    type="text" 
+                                    className="input-field" 
+                                    style={{ paddingLeft: '45px' }} 
+                                    placeholder="Last Name" 
+                                    value={lastName}
+                                    onChange={(e) => setLastName(e.target.value)}
+                                    required
+                                />
+                            </div>
                         </div>
                         <div style={{ position: 'relative' }}>
                             <Mail style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} size={18} />
@@ -159,6 +178,18 @@ const Register = () => {
                             >
                                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                             </button>
+                        </div>
+                        <div style={{ position: 'relative' }}>
+                            <Lock style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} size={18} />
+                            <input 
+                                type={showPassword ? "text" : "password"} 
+                                className="input-field" 
+                                style={{ paddingLeft: '45px', paddingRight: '45px' }} 
+                                placeholder="Confirm Password" 
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                required
+                            />
                         </div>
                         
                         <button type="submit" disabled={loading} className="btn btn-primary" style={{ padding: '16px', fontSize: '1.1rem', marginTop: '10px' }}>
