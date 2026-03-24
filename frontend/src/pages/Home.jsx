@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
-import { ChevronRight, Play, Users, Star, GraduationCap, Code, TrendingUp, Heart, Award, ShieldCheck, ArrowRight } from 'lucide-react';
+import { ChevronRight, Play, Users, Star, GraduationCap, Code, TrendingUp, Heart, Award, ShieldCheck, ArrowRight, Briefcase, UserCheck, Rocket, Clock } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -18,6 +18,7 @@ const Home = () => {
     const [liveClasses, setLiveClasses] = useState([]);
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
     const [isEnquiryOpen, setIsEnquiryOpen] = useState(false);
+    const [enquirySubject, setEnquirySubject] = useState('');
     const { user, enrollInCourse, toggleFavorite } = useAuth();
     const navigate = useNavigate();
 
@@ -102,8 +103,11 @@ const Home = () => {
                         <div>
                             <span className="badge badge-primary" style={{ marginBottom: '20px' }}>The Learning Experience</span>
                             <h2 style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '24px', lineHeight: '1.2' }}>Immersive Study for <br/> Modern Engineers</h2>
-                            <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', marginBottom: '30px', lineHeight: '1.8' }}>
-                                At Coding Classes, we don't just teach syntax—we build engineers. Our high-fidelity learning environment combines professional-grade tools with expert guidance.
+                            <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', marginBottom: '30px', lineHeight: '1.8', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                    <img src="/logo_dark.png" style={{ width: '40px', height: '40px', borderRadius: '10px' }} alt="C-C" />
+                                    <span>At <strong>Coding Classes</strong>, we don't just teach syntax—we build engineers. Our high-fidelity learning environment combines professional-grade tools with expert guidance.</span>
+                                </span>
                                 <br/><br/>
                                 Experience live pair programming, interactive technical labs, and a curriculum designed by industry veterans from the world's leading tech hubs.
                             </p>
@@ -144,7 +148,8 @@ const Home = () => {
                                             <span style={{ fontWeight: '700', color: 'var(--accent-primary)' }}>₹{course.price}</span>
                                         </div>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                            <h3 style={{ marginBottom: '12px', flex: 1 }}>{course.title}</h3>
+                                            <h3 style={{ marginBottom: '8px', flex: 1 }}>{course.title}</h3>
+                                            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '16px', display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{course.description}</p>
                                             <button 
                                                 onClick={(e) => {
                                                     e.preventDefault();
@@ -187,9 +192,14 @@ const Home = () => {
                                 <div style={{ position: 'relative' }}>
                                     <img src={batch.thumbnail} style={{ width: '100%', height: '240px', objectFit: 'cover' }} />
                                     {batch.originalPrice && (
-                                        <div style={{ position: 'absolute', top: '20px', right: '20px', background: '#ef4444', color: 'white', padding: '5px 15px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: '800' }}>
-                                            {Math.round((1 - batch.price / batch.originalPrice) * 100)}% OFF
-                                        </div>
+                                        <>
+                                            <div style={{ position: 'absolute', top: '20px', right: '20px', background: '#ef4444', color: 'white', padding: '5px 15px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: '800', zIndex: 10 }}>
+                                                {Math.round((1 - batch.price / batch.originalPrice) * 100)}% OFF
+                                            </div>
+                                            <div style={{ position: 'absolute', top: '20px', left: '20px', background: 'var(--accent-primary)', color: 'white', padding: '5px 15px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: '900', zIndex: 10, letterSpacing: '1px', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
+                                                LIMITED TIME OFFER ⏳
+                                            </div>
+                                        </>
                                     )}
                                 </div>
                                 <div style={{ padding: '30px' }}>
@@ -210,20 +220,40 @@ const Home = () => {
                                             />
                                         </button>
                                     </div>
-                                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '20px' }}>
-                                        Starts {new Date(batch.startDate).toLocaleDateString()} • Live 1-on-1 Mentorship
+                                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <Clock size={16} color="var(--accent-primary)" />
+                                        <span>Starts {new Date(batch.startDate).toLocaleDateString()} • {batch.accessDuration || 6} Months Full Access</span>
                                     </p>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '25px' }}>
-                                        <span style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--accent-primary)' }}>₹{batch.price}</span>
-                                        {batch.originalPrice && <span style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', textDecoration: 'line-through' }}>₹{batch.originalPrice}</span>}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                            <span style={{ fontSize: '1.8rem', fontWeight: '800', color: 'var(--accent-primary)' }}>₹{batch.price}</span>
+                                            {batch.originalPrice && <span style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', textDecoration: 'line-through' }}>₹{batch.originalPrice}</span>}
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                            <span style={{ fontSize: '0.75rem', fontWeight: '900', color: '#ef4444', textTransform: 'uppercase', letterSpacing: '1px' }}>🔥 Only {batch.maxStudents || 50} Slots Available</span>
+                                        </div>
                                     </div>
-                                    <button 
-                                        onClick={() => handleEnroll(batch._id)} 
-                                        className="btn btn-primary" 
-                                        style={{ width: '100%', padding: '14px', background: user?.enrolledCourses?.some(c => (c._id || c) === batch._id) ? 'var(--success)' : 'var(--accent-primary)' }}
-                                    >
-                                        {user?.enrolledCourses?.some(c => (c._id || c) === batch._id) ? 'Enrolled' : 'Enroll Now'}
-                                    </button>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                        <button 
+                                            onClick={() => {
+                                                if (user?.enrolledCourses?.some(c => (c._id || c) === batch._id)) {
+                                                    navigate(`/lessons/${batch._id}/0`);
+                                                } else {
+                                                    // Open enquiry modal with batch specific context
+                                                    window.openEnquiryModal && window.openEnquiryModal(batch.title);
+                                                }
+                                            }} 
+                                            className="btn btn-primary" 
+                                            style={{ width: '100%', padding: '14px', background: user?.enrolledCourses?.some(c => (c._id || c) === batch._id) ? 'var(--success)' : 'var(--accent-primary)' }}
+                                        >
+                                            {user?.enrolledCourses?.some(c => (c._id || c) === batch._id) ? 'Access Batch' : 'Request Admission'}
+                                        </button>
+                                        {!user?.enrolledCourses?.some(c => (c._id || c) === batch._id) && (
+                                            <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textAlign: 'center', fontWeight: '700' }}>
+                                                Admin approval required after request
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -282,7 +312,10 @@ const Home = () => {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--accent-primary)', fontWeight: '800', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '20px' }}>
                                 <Award size={20} /> Professional Recognition
                             </div>
-                            <h2 style={{ fontSize: '3rem', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '25px', lineHeight: 1.1 }}>Industry-Recognized <br/><span style={{ color: 'var(--accent-primary)' }}>Certification</span></h2>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '25px', marginBottom: '35px' }}>
+                                <img src="/logo_official.png" style={{ width: '80px', height: '80px', borderRadius: '20px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }} alt="Official Logo" />
+                                <h2 style={{ fontSize: '3rem', fontWeight: '900', color: 'var(--text-primary)', lineHeight: 1.1 }}>Industry-Recognized <br/><span style={{ color: 'var(--accent-primary)' }}>Certification</span></h2>
+                            </div>
                             <p style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', marginBottom: '40px', lineHeight: 1.6 }}>
                                 Upon successful completion of our immersive cohorts, you receive an official Certificate of Achievement. Our credentials are recognized by leading engineering teams and verify your mastery of industry-standard technologies and project building.
                             </p>
@@ -299,7 +332,7 @@ const Home = () => {
                             </div>
                         </div>
 
-                        <div className="glass-card" style={{ padding: '30px', background: '#fff', transform: 'rotate(2deg)', boxShadow: '0 40px 80px -20px rgba(0,0,0,0.15)', border: '10px solid #f8fafc' }}>
+                        <div className="glass-card" style={{ padding: '30px', background: 'var(--bg-primary)', transform: 'rotate(2deg)', boxShadow: '0 40px 80px -20px rgba(0,0,0,0.15)', border: '10px solid #f8fafc' }}>
                             <div style={{ border: '4px double #e2e8f0', padding: '30px', textAlign: 'center', position: 'relative' }}>
                                 <Award size={48} color="var(--accent-primary)" style={{ marginBottom: '20px' }} />
                                 <h4 style={{ fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '3px', fontWeight: '900', color: 'var(--accent-primary)', marginBottom: '10px' }}>Certificate of Achievement</h4>
@@ -321,8 +354,102 @@ const Home = () => {
                     </div>
                 </div>
             </section>
+            {/* Real Projects & Mentorship Section */}
+            <section className="section-padding" style={{ padding: '120px 0', borderTop: '1px solid var(--border)', background: 'var(--bg-primary)' }}>
+                <div className="container">
+                    <div style={{ textAlign: 'center', marginBottom: '80px' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', background: 'var(--accent-primary)10', padding: '10px 25px', borderRadius: '50px', color: 'var(--accent-primary)', fontWeight: '900', fontSize: '0.85rem', marginBottom: '20px', border: '1px solid var(--accent-primary)20' }}>
+                            <Rocket size={18} /> Career-Ready Engineering
+                        </div>
+                        <h2 style={{ fontSize: '3.5rem', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '20px', lineHeight: '1.2' }}>Build <span className="text-gradient">Real-World</span> Enterprise Projects</h2>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '1.3rem', maxWidth: '800px', margin: '0 auto' }}>Master industrial standards by building complex systems from scratch under elite mentorship.</p>
+                    </div>
 
+                    <div className="grid-courses" style={{ gap: '30px' }}>
+                        {[
+                            { title: 'Fintech Wallet Engine', desc: 'Secure transaction processing, ledger systems & API security.', icon: <Briefcase />, color: '#6366f1' },
+                            { title: 'AI-SaaS Infrastructure', desc: 'Scalable LLM integration, prompt engineering & vector DBs.', icon: <Rocket />, color: '#ec4899' },
+                            { title: 'E-commerce Microservices', desc: 'Distributing systems, high-concurrency handling & Redis caching.', icon: <Code />, color: '#f59e0b' },
+                            { title: 'Real-time Analytics', desc: 'WebSocket integration, data pipelines & visual dashboards.', icon: <TrendingUp />, color: '#10b981' }
+                        ].map((proj, i) => (
+                            <div 
+                                key={i} 
+                                className="glass-card fade-in" 
+                                style={{ 
+                                    padding: '40px', 
+                                    border: `1.5px solid ${proj.color}30`, 
+                                    transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)', 
+                                    cursor: 'pointer',
+                                    position: 'relative',
+                                    overflow: 'hidden'
+                                }}
+                                onMouseEnter={e => {
+                                    e.currentTarget.style.borderColor = proj.color;
+                                    e.currentTarget.style.transform = 'translateY(-15px) scale(1.02)';
+                                    e.currentTarget.style.boxShadow = `0 30px 60px -15px ${proj.color}25`;
+                                }}
+                                onMouseLeave={e => {
+                                    e.currentTarget.style.borderColor = `${proj.color}30`;
+                                    e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                                    e.currentTarget.style.boxShadow = 'none';
+                                }}
+                            >
+                                <div style={{ background: `${proj.color}15`, color: proj.color, width: '50px', height: '50px', borderRadius: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '25px' }}>
+                                    {proj.icon}
+                                </div>
+                                <h3 style={{ fontSize: '1.4rem', fontWeight: '800', marginBottom: '15px' }}>{proj.title}</h3>
+                                <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '25px' }}>{proj.desc}</p>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: proj.color, fontWeight: '800', fontSize: '0.9rem' }}>
+                                    Explore Blueprint <ArrowRight size={16} />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
 
+                    <div style={{ marginTop: '120px', position: 'relative' }}>
+                        <div className="glass-card" style={{ padding: '80px', background: 'var(--bg-accent)', border: '1px solid var(--border)', display: 'flex', flexWrap: 'wrap', gap: '60px', alignItems: 'center', borderRadius: '40px' }}>
+                            <div style={{ flex: 1, minWidth: '300px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#8b5cf6', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.8rem', marginBottom: '20px' }}>
+                                    <UserCheck size={20} /> Professional Mentorship
+                                </div>
+                                <h2 style={{ fontSize: '2.8rem', fontWeight: '900', marginBottom: '25px', lineHeight: '1.1' }}>Personalized <span style={{ color: '#8b5cf6' }}>1-on-1</span> Career Guidance</h2>
+                                <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', lineHeight: '1.8', marginBottom: '40px' }}>
+                                    Don't just watch videos. Work directly with industry veterans from Top Product Companies. Get your code reviewed, projects audited, and clear your doubts in real-time sessions.
+                                </p>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '40px' }}>
+                                    {[
+                                        'Code Review Sessions',
+                                        'Architecture Audits',
+                                        'Resume Overhaul',
+                                        'Interview Preparation'
+                                    ].map((item, i) => (
+                                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1rem', fontWeight: '700' }}>
+                                            <div style={{ width: '8px', height: '8px', background: '#8b5cf6', borderRadius: '50%' }} /> {item}
+                                        </div>
+                                    ))}
+                                </div>
+                                <button onClick={() => { setEnquirySubject('Mentorship Call'); setIsEnquiryOpen(true); }} className="btn btn-primary" style={{ padding: '18px 40px', background: '#8b5cf6' }}>Book Your Free Mentor Call</button>
+                            </div>
+                            <div style={{ flex: 1, minWidth: '300px', position: 'relative', display: 'flex', justifyContent: 'center' }}>
+                                <div style={{ position: 'relative' }}>
+                                    <img 
+                                        src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop" 
+                                        style={{ width: '450px', height: '550px', objectFit: 'cover', borderRadius: '30px', boxShadow: '0 50px 100px -20px rgba(139, 92, 246, 0.3)' }} 
+                                        alt="mentorship"
+                                    />
+                                    <div style={{ position: 'absolute', bottom: '-40px', left: '-30px', background: 'white', padding: '30px', borderRadius: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', gap: '15px', color: '#0f172a' }}>
+                                        <div style={{ background: '#10b981', color: 'white', padding: '10px', borderRadius: '12px' }}><ShieldCheck /></div>
+                                        <div>
+                                            <h4 style={{ fontSize: '1.2rem', fontWeight: '900' }}>4.9/5 Rating</h4>
+                                            <p style={{ fontSize: '0.8rem', opacity: 0.6, fontWeight: '700' }}>Mentor Satisfaction Rate</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
             {/* Student Feedback (Testimonials) Section */}
             <section className="section-padding" style={{ padding: '100px 0', background: 'var(--bg-accent)', borderBottom: '1px solid var(--border)' }}>
@@ -376,7 +503,8 @@ const Home = () => {
             />
             <EnquiryModal 
                 isOpen={isEnquiryOpen} 
-                onClose={() => setIsEnquiryOpen(false)} 
+                onClose={() => { setIsEnquiryOpen(false); setEnquirySubject(''); }} 
+                courseTitle={enquirySubject}
             />
         </div>
     );

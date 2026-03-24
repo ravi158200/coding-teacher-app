@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import API from '../services/api';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, ArrowLeft, RefreshCw, CheckCircle2, XCircle } from 'lucide-react';
+import { Trophy, ArrowLeft, RefreshCw, CheckCircle2, XCircle, Award } from 'lucide-react';
 
 const Quiz = () => {
     const { courseId } = useParams();
@@ -35,7 +35,7 @@ const Quiz = () => {
             } else {
                 setShowResult(true);
             }
-        }, 1000);
+        }, 2000);
     };
 
     if (!course) return <div className="container section-padding" style={{ textAlign: 'center' }}><h2>Loading Quiz...</h2></div>;
@@ -72,26 +72,39 @@ const Quiz = () => {
                         <h2 style={{ fontSize: '1.8rem', fontWeight: '800', marginBottom: '40px' }}>{course.quizzes[currentQuestion].question}</h2>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                            {course.quizzes[currentQuestion].options.map((option, idx) => (
-                                <button 
-                                    key={idx}
-                                    onClick={() => handleAnswer(idx)}
-                                    className="btn"
-                                    style={{ 
-                                        padding: '20px', 
-                                        justifyContent: 'flex-start',
-                                        background: selectedOption === idx 
-                                            ? (idx === course.quizzes[currentQuestion].correctAnswer ? 'var(--success)' : '#ef4444') 
-                                            : 'var(--bg-accent)',
-                                        color: selectedOption === idx ? 'white' : 'var(--text-primary)',
-                                        border: '1px solid var(--border)',
-                                        fontSize: '1.1rem'
-                                    }}
-                                >
-                                    <span style={{ marginRight: '15px', padding: '5px 10px', borderRadius: '8px', background: 'rgba(255,255,255,0.2)', fontWeight: '800' }}>{String.fromCharCode(65 + idx)}</span>
-                                    {option}
-                                </button>
-                            ))}
+                            {course.quizzes[currentQuestion].options.map((option, idx) => {
+                                const isCorrect = idx === course.quizzes[currentQuestion].correctAnswer;
+                                const isSelected = selectedOption === idx;
+                                const showAsCorrect = selectedOption !== null && isCorrect;
+                                const showAsIncorrect = isSelected && !isCorrect;
+
+                                return (
+                                    <button 
+                                        key={idx}
+                                        onClick={() => selectedOption === null && handleAnswer(idx)}
+                                        className="btn"
+                                        style={{ 
+                                            padding: '20px', 
+                                            justifyContent: 'space-between',
+                                            background: showAsCorrect 
+                                                ? 'var(--success)' 
+                                                : (showAsIncorrect ? '#ef4444' : 'var(--bg-accent)'),
+                                            color: (showAsCorrect || showAsIncorrect) ? 'white' : 'var(--text-primary)',
+                                            border: '1px solid var(--border)',
+                                            fontSize: '1.1rem',
+                                            opacity: (selectedOption !== null && !isCorrect && !isSelected) ? 0.6 : 1,
+                                            cursor: selectedOption !== null ? 'default' : 'pointer'
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                            <span style={{ marginRight: '15px', padding: '5px 10px', borderRadius: '8px', background: 'rgba(255,255,255,0.2)', fontWeight: '800' }}>{String.fromCharCode(65 + idx)}</span>
+                                            {option}
+                                        </div>
+                                        {showAsCorrect && <CheckCircle2 size={24} />}
+                                        {showAsIncorrect && <XCircle size={24} />}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </motion.div>
                 ) : (

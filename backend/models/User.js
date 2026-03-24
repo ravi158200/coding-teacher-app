@@ -10,6 +10,7 @@ const userSchema = new mongoose.Schema({
     occupation: { type: String, default: '' },
     skills: [{ type: String }],
     phoneNumber: { type: String, default: '' },
+    regNumber: { type: String, default: '' },
     socials: {
         github: { type: String, default: '' },
         linkedin: { type: String, default: '' },

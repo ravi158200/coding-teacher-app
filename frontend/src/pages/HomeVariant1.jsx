@@ -28,7 +28,7 @@ const HomeVariant1 = () => {
                         className="mb-6 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-violet-500/30 bg-violet-500/10 backdrop-blur-md"
                     >
                         <Zap size={16} className="text-violet-400" />
-                        <span className="text-sm font-medium text-violet-300">The Next Gen Coding Academy</span>
+                        <span className="text-sm font-medium text-violet-300">The Next Gen Coding Programs</span>
                     </motion.div>
 
                     <motion.h1 

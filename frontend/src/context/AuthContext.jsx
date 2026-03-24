@@ -18,9 +18,9 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const register = async (name, email, password) => {
+    const register = async (name, email, password, phone, regNumber) => {
         try {
-            const { data } = await API.post('/auth/register', { name, email, password });
+            const { data } = await API.post('/auth/register', { name, email, password, phone, regNumber });
             setUser(data);
             localStorage.setItem('userInfo', JSON.stringify(data));
         } catch (error) {
@@ -79,14 +79,22 @@ export const AuthProvider = ({ children }) => {
             const updatedUser = { ...user, ...data };
             setUser(updatedUser);
             localStorage.setItem('userInfo', JSON.stringify(updatedUser));
-            return data;
         } catch (error) {
             throw error.response?.data?.message || 'Profile update failed';
         }
     };
 
+    const changePassword = async (passwords) => {
+        if (!user) return;
+        try {
+            await API.put('/auth/change-password', passwords);
+        } catch (error) {
+            throw error.response?.data?.message || 'Password change failed';
+        }
+    };
+
     return (
-        <AuthContext.Provider value={{ user, token: user?.token, login, register, logout, toggleFavorite, enrollInCourse, updateProgress, updateProfile, setUser }}>
+        <AuthContext.Provider value={{ user, token: user?.token, login, register, logout, toggleFavorite, enrollInCourse, updateProgress, updateProfile, changePassword, setUser }}>
             {children}
         </AuthContext.Provider>
     );

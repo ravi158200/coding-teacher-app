@@ -6,8 +6,8 @@ const slides = [
   {
     image: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=3840&auto=format&fit=crop',
     title: 'Master the Art of Modern Engineering',
-    description: 'Join the world\'s most immersive coding academy and build the software of tomorrow.',
-    cta: 'Explore Academy',
+    description: 'Join the world\'s most immersive coding course and build the software of tomorrow.',
+    cta: 'Explore Courses',
     link: '/courses'
   },
   {
@@ -106,7 +106,7 @@ const HeroSlider = ({ onEnquiryClick }) => {
                 border: '1px solid rgba(129, 140, 248, 0.3)',
                 marginBottom: '20px',
                 display: 'inline-block'
-              }}>Top Rated Academy</span>
+              }}>Top Rated Courses</span>
               
               <h1 style={{ 
                 color: 'white', 

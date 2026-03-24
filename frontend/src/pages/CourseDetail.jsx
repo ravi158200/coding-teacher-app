@@ -154,7 +154,7 @@ const CourseDetail = () => {
                                 </div>
                             ) : (
                                 <button onClick={handleEnroll} className="btn btn-primary" style={{ width: '100%', padding: '16px', marginBottom: '15px' }}>
-                                    {course.isBatch ? `Pre-Enroll in Batch (₹{course.price})` : `Enroll Now (₹{course.price})`} <ArrowRight size={20} />
+                                    {course.isBatch ? `Pre-Enroll in Batch (₹${course.price})` : `Enroll Now (₹${course.price})`} <ArrowRight size={20} />
                                 </button>
                             )}
 

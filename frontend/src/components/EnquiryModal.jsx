@@ -10,6 +10,12 @@ const EnquiryModal = ({ isOpen, onClose, courseTitle }) => {
         course: courseTitle || '',
         message: ''
     });
+
+    React.useEffect(() => {
+        if (courseTitle) {
+            setFormData(prev => ({ ...prev, course: courseTitle }));
+        }
+    }, [courseTitle]);
     const [loading, setLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
 
@@ -42,15 +48,15 @@ const EnquiryModal = ({ isOpen, onClose, courseTitle }) => {
                 {submitted ? (
                     <div style={{ textAlign: 'center', padding: '40px 0' }}>
                         <div style={{ color: 'var(--success)', marginBottom: '20px' }}><CheckCircle size={60} /></div>
-                        <h2>Enquiry Sent!</h2>
-                        <p style={{ color: 'var(--text-secondary)', marginTop: '10px' }}>Our admissions team will contact you shortly.</p>
+                        <h2>Request Sent!</h2>
+                        <p style={{ color: 'var(--text-secondary)', marginTop: '10px' }}>Our team will contact you shortly to schedule your session.</p>
                     </div>
                 ) : (
                     <>
                         <h2 style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <MessageSquare size={28} color="var(--accent-primary)" /> Admissions Enquiry
+                            <MessageSquare size={28} color="var(--accent-primary)" /> {courseTitle === 'Mentorship Call' ? 'Book Mentorship' : 'Admissions Enquiry'}
                         </h2>
-                        <p style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>Ready to start your journey? Fill out the form below.</p>
+                        <p style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>{courseTitle === 'Mentorship Call' ? 'Schedule your free 1-on-1 career guidance call.' : 'Ready to start your journey? Fill out the form below.'}</p>
 
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                             <div style={{ position: 'relative' }}>
@@ -77,15 +83,22 @@ const EnquiryModal = ({ isOpen, onClose, courseTitle }) => {
                                     required 
                                 />
                             </div>
-                            <div style={{ position: 'relative' }}>
+                             <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                                 <Phone size={18} style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+                                <div style={{ position: 'absolute', left: '45px', top: '50%', transform: 'translateY(-50%)', fontWeight: '800', color: 'var(--text-primary)', borderRight: '1px solid var(--border)', paddingRight: '8px', pointerEvents: 'none' }}>
+                                    +91
+                                </div>
                                 <input 
-                                    type="text" 
+                                    type="tel" 
                                     placeholder="Phone Number" 
                                     className="input-field" 
-                                    style={{ paddingLeft: '45px' }} 
+                                    style={{ paddingLeft: '85px' }} 
                                     value={formData.phone}
-                                    onChange={e => setFormData({...formData, phone: e.target.value})}
+                                    onChange={e => {
+                                        const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                        setFormData({...formData, phone: val});
+                                    }}
+                                    required
                                 />
                             </div>
                             <div style={{ position: 'relative' }}>

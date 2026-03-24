@@ -1,11 +1,14 @@
+/* eslint-disable no-undef */
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from 'react';
 import API, { ASSET_URL } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { Link } from 'react-router-dom';
-import { GraduationCap, BookOpen, Clock, Heart, Award, ArrowRight, Video, User as UserIcon, Briefcase, Mail, Phone, Github, Linkedin, Twitter, Save, Edit3, X, CheckCircle, Star, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { GraduationCap, BookOpen, Clock, Heart, Award, ArrowRight, Video, User as UserIcon, Briefcase, Mail, Phone, Github, Linkedin, Twitter, Save, Edit3, X, CheckCircle, Star, Loader2, Image as ImageIcon, Lock, ShieldCheck, AlertCircle, TrendingUp, Code, Activity } from 'lucide-react';
 
 const Profile = () => {
-    const { user, token, updateProfile, toggleFavorite, setUser } = useAuth();
+    const { user, token, updateProfile, toggleFavorite, changePassword, setUser } = useAuth();
+    const location = useLocation();
     const [profileData, setProfileData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
@@ -13,17 +16,35 @@ const Profile = () => {
     const [saveLoading, setSaveLoading] = useState(false);
     const [avatarLoading, setAvatarLoading] = useState(false);
     const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
+    const [avatarUrlInput, setAvatarUrlInput] = useState('');
     const [upcomingClasses, setUpcomingClasses] = useState([]);
     const [feedback, setFeedback] = useState({ rating: 5, message: '' });
     const [feedbackSent, setFeedbackSent] = useState(false);
+    const [allCourses, setAllCourses] = useState([]);
+    const [passwords, setPasswords] = useState({ current: '', next: '', confirm: '' });
+    const [passLoading, setPassLoading] = useState(false);
+    const [passError, setPassError] = useState('');
+    const [passSuccess, setPassSuccess] = useState(false);
+
+    const presetAvatars = [
+        "https://cdn-icons-png.flaticon.com/128/4140/4140048.png",
+        "https://cdn-icons-png.flaticon.com/128/4140/4140047.png",
+        "https://cdn-icons-png.flaticon.com/128/4140/4140051.png",
+        "https://cdn-icons-png.flaticon.com/128/1154/1154416.png",
+        "https://cdn-icons-png.flaticon.com/128/1154/1154446.png",
+        "https://cdn-icons-png.flaticon.com/128/1154/1154457.png",
+        "https://cdn-icons-png.flaticon.com/128/1154/1154471.png",
+        "https://cdn-icons-png.flaticon.com/128/1154/1154483.png"
+    ];
+
+    const isSecurityView = location.hash === '#security';
+    const isCoursesView = location.hash === '#my-courses';
 
     useEffect(() => {
         const fetchProfileData = async () => {
+            setLoading(true);
             try {
-                const [profileRes, classesRes] = await Promise.all([
-                    API.get('/users/profile'),
-                    API.get('/content?type=class')
-                ]);
+                const profileRes = await API.get('/users/profile');
                 const data = profileRes.data;
                 setProfileData(data);
                 setEditData({
@@ -38,24 +59,37 @@ const Profile = () => {
                         twitter: data.socials?.twitter || ''
                     }
                 });
-                setUpcomingClasses(classesRes.data.slice(0, 5));
-                setLoading(false);
             } catch (error) {
                 console.error('Error fetching profile data');
+            } finally {
                 setLoading(false);
             }
         };
-        if (token) fetchProfileData();
-    }, [token]);
 
-    useEffect(() => {
-        if (!loading && window.location.hash === '#favorites') {
-            setTimeout(() => {
-                const el = document.getElementById('favorites');
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
-            }, 100);
+        const fetchUpcomingClasses = async () => {
+            try {
+                const classesRes = await API.get('/content?type=class');
+                setUpcomingClasses(classesRes.data.slice(0, 5));
+            } catch (error) {
+                console.error('Error fetching classes');
+            }
+        };
+
+        const fetchAllCourses = async () => {
+            try {
+                const { data } = await API.get('/courses');
+                setAllCourses(data);
+            } catch (error) {
+                console.error('Error fetching all courses');
+            }
+        };
+
+        if (token) {
+            fetchProfileData();
+            fetchUpcomingClasses();
+            fetchAllCourses();
         }
-    }, [loading]);
+    }, [token]);
 
     const handleSave = async () => {
         setSaveLoading(true);
@@ -74,17 +108,6 @@ const Profile = () => {
         }
     };
 
-    const presetAvatars = [
-        "https://cdn-icons-png.flaticon.com/128/3177/3177440.png",
-        "https://cdn-icons-png.flaticon.com/128/1995/1995539.png",
-        "https://cdn-icons-png.flaticon.com/128/1995/1995574.png",
-        "https://cdn-icons-png.flaticon.com/128/4140/4140047.png",
-        "https://cdn-icons-png.flaticon.com/128/4140/4140037.png",
-        "https://cdn-icons-png.flaticon.com/128/4140/4140051.png",
-        "https://cdn-icons-png.flaticon.com/128/4333/4333588.png",
-        "https://cdn-icons-png.flaticon.com/128/4333/4333609.png"
-    ];
-
     const handleAvatarSelect = async (url) => {
         setAvatarLoading(true);
         try {
@@ -101,12 +124,65 @@ const Profile = () => {
         }
     };
 
-    const handleFeedbackSubmit = (e) => {
+    // Password Policy Logic
+    const validatePassword = (pwd) => {
+        const hasSeq = /12345|23456|34567|45678|56789|abcde|bcdef/.test(pwd.toLowerCase());
+        const isLen = pwd.length >= 8;
+        const hasUpper = /[A-Z]/.test(pwd);
+        const hasLower = /[a-z]/.test(pwd);
+        const hasNum = /[0-9]/.test(pwd);
+        const specCount = (pwd.match(/[^A-Za-z0-9]/g) || []).length;
+        const hasTwoSpec = specCount >= 2;
+        const hasIllegal = /[<>#;]/.test(pwd);
+        const hasRepeats = /(.)\1\1/.test(pwd);
+        const namePart = profileData?.name?.split(' ')[0]?.toLowerCase();
+        const hasPersonal = namePart && pwd.toLowerCase().includes(namePart);
+        const hasLPU = pwd.toLowerCase().includes('lpu@12345');
+
+        return {
+            seq: !hasSeq,
+            len: isLen,
+            upper: hasUpper,
+            lower: hasLower,
+            num: hasNum,
+            twoSpec: hasTwoSpec,
+            illegal: !hasIllegal,
+            repeats: !hasRepeats,
+            personal: !hasPersonal,
+            lpu: !hasLPU,
+            match: passwords.next === passwords.confirm && passwords.next !== '',
+            unique: passwords.next !== passwords.current && passwords.current !== ''
+        };
+    };
+
+    const policyResults = validatePassword(passwords.next);
+
+    const handleSubmitPassword = async (e) => {
         e.preventDefault();
-        // Mock feedback submission
-        setFeedbackSent(true);
-        setTimeout(() => setFeedbackSent(false), 3000);
-        setFeedback({ rating: 5, message: '' });
+        setPassError('');
+        setPassSuccess(false);
+
+        const results = validatePassword(passwords.next);
+        const allValid = Object.values(results).every(v => v === true);
+
+        if (!allValid) {
+            setPassError('Password does not meet all security guidelines');
+            return;
+        }
+
+        setPassLoading(true);
+        try {
+            await changePassword({
+                currentPassword: passwords.current,
+                newPassword: passwords.next
+            });
+            setPassSuccess(true);
+            setPasswords({ current: '', next: '', confirm: '' });
+        } catch (error) {
+            setPassError(error || 'Failed to update password');
+        } finally {
+            setPassLoading(false);
+        }
     };
 
     const handleAvatarUpload = async (file) => {
@@ -119,13 +195,10 @@ const Profile = () => {
             const { data } = await API.post('/users/upload-avatar', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
-            // Update local state and AuthContext
             setProfileData(prev => ({ ...prev, avatar: data.avatar }));
-            // We need to update userInfo in localStorage so other pages reflect the change
             const userInfo = JSON.parse(localStorage.getItem('userInfo'));
             const updatedUserInfo = { ...userInfo, avatar: data.avatar };
             localStorage.setItem('userInfo', JSON.stringify(updatedUserInfo));
-            // Trigger global state update
             setUser(updatedUserInfo);
         } catch (error) {
             alert('Avatar upload failed');
@@ -142,411 +215,460 @@ const Profile = () => {
 
     return (
         <div className="bg-[var(--bg-primary)] min-h-screen w-full">
-        <div className="container section-padding fade-in">
-            {/* Header Section */}
-            <div className="glass-card" style={{ padding: '0', marginBottom: '40px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-                {/* Cover Image Background */}
-                <div style={{ height: '180px', background: 'linear-gradient(135deg, #6366f1, #a855f7)', width: '100%', position: 'relative' }}>
-                    <img 
-                        src="https://images.unsplash.com/photo-1542831371-29b0f74f9713?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" 
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.3, mixBlendMode: 'overlay' }} 
-                        alt="cover"
-                    />
-                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent, var(--bg-primary))' }} />
-                </div>
-
-                <div style={{ marginTop: '-60px', position: 'relative', zIndex: 10 }}>
-                    <div 
-                        style={{ position: 'relative', width: '140px', height: '140px', margin: '0 auto 20px', cursor: 'pointer', transition: 'transform 0.3s' }} 
-                        className="avatar-container"
-                        onClick={() => setIsAvatarModalOpen(true)}
-                        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-                        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                    >
-                        <img 
-                            src={profileData.avatar ? (profileData.avatar.startsWith('http') ? profileData.avatar : `${ASSET_URL}${profileData.avatar}`) : "https://cdn-icons-png.flaticon.com/128/3177/3177440.png"} 
-                            style={{ width: '140px', height: '140px', borderRadius: '50%', border: '6px solid var(--bg-primary)', objectFit: 'cover', background: 'var(--bg-primary)', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }} 
-                            alt="avatar" 
-                        />
-                        <div className="avatar-overlay" style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', opacity: 0, transition: 'opacity 0.3s' }}>
-                            <Edit3 size={24} />
-                        </div>
-                    </div>
-                    
-                    <button 
-                        onClick={() => setIsEditing(!isEditing)}
-                        style={{ position: 'absolute', top: '-10px', right: '30px', background: 'var(--bg-accent)', border: '1px solid var(--border)', padding: '10px 20px', borderRadius: '12px', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '800', fontSize: '0.85rem' }}
-                    >
-                        {isEditing ? <><X size={18} /> Cancel</> : <><Edit3 size={18} /> Edit Profile</>}
-                    </button>
-                </div>
-
-                <div style={{ padding: '0 40px 40px' }}>
-                    <h1 style={{ fontSize: '2.8rem', fontWeight: '900', color: 'var(--text-primary)', letterSpacing: '-1px' }}>{profileData.name}</h1>
-                    <p style={{ color: 'var(--accent-primary)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.8rem', marginBottom: '20px' }}>Coding Classes Engineering Fellow • {profileData.role.toUpperCase()}</p>
-                    
-                    {profileData.occupation && (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>
-                            <Briefcase size={18} /> {profileData.occupation}
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Main Content Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: isEditing ? '1fr' : '1.2fr 0.8fr', gap: '40px' }}>
+            <div className="container section-padding fade-in">
                 
-                {isEditing ? (
-                    /* Edit Form */
-                    <div className="glass-card" style={{ padding: '40px' }}>
-                        <h2 style={{ marginBottom: '30px', display: 'flex', alignItems: 'center', gap: '12px' }}><Edit3 size={24} /> Edit Your Profile</h2>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Full Name</label>
-                                    <input type="text" className="input-field" value={editData.name} onChange={e => setEditData({...editData, name: e.target.value})} />
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Occupation</label>
-                                    <input type="text" className="input-field" placeholder="e.g. Student, Software Intern" value={editData.occupation} onChange={e => setEditData({...editData, occupation: e.target.value})} />
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Phone Number</label>
-                                    <input type="text" className="input-field" value={editData.phoneNumber} onChange={e => setEditData({...editData, phoneNumber: e.target.value})} />
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Bio</label>
-                                    <textarea className="input-field" style={{ minHeight: '120px', padding: '15px' }} value={editData.bio} onChange={e => setEditData({...editData, bio: e.target.value})} />
-                                </div>
+                {isSecurityView ? (
+                    <div style={{ maxWidth: '1100px', margin: '40px auto' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '40px' }}>
+                            <div style={{ background: '#f59e0b20', color: '#f59e0b', width: '60px', height: '60px', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Lock size={32} />
                             </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Skills (comma separated)</label>
-                                    <input type="text" className="input-field" placeholder="React, Node.js, Python" value={editData.skills} onChange={e => setEditData({...editData, skills: e.target.value})} />
-                                </div>
-                                <div style={{ background: 'var(--bg-accent)', padding: '20px', borderRadius: '15px' }}>
-                                    <h4 style={{ marginBottom: '15px' }}>Social Profiles</h4>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                            <Github size={18} />
-                                            <input type="text" className="input-field" placeholder="GitHub URL" value={editData.socials.github} onChange={e => setEditData({...editData, socials: {...editData.socials, github: e.target.value}})} />
-                                        </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                            <Linkedin size={18} />
-                                            <input type="text" className="input-field" placeholder="LinkedIn URL" value={editData.socials.linkedin} onChange={e => setEditData({...editData, socials: {...editData.socials, linkedin: e.target.value}})} />
-                                        </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                            <Twitter size={18} />
-                                            <input type="text" className="input-field" placeholder="Twitter URL" value={editData.socials.twitter} onChange={e => setEditData({...editData, socials: {...editData.socials, twitter: e.target.value}})} />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <button 
-                            disabled={saveLoading}
-                            onClick={handleSave}
-                            className="btn btn-primary" 
-                            style={{ marginTop: '40px', width: '200px', padding: '15px' }}
-                        >
-                            {saveLoading ? 'Saving...' : <><Save size={18}/> Save Profile</>}
-                        </button>
-                    </div>
-                ) : (
-                    /* View Mode */
-                    <>
-                        {/* Summary / Stats Column */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-                            {/* Personal Details */}
-                            <div className="glass-card" style={{ padding: '30px' }}>
-                                <h3 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}><UserIcon size={20} /> About Me</h3>
-                                <p style={{ color: 'var(--text-secondary)', marginBottom: '25px', lineHeight: '1.6' }}>
-                                    {profileData.bio || "No bio added yet. Tell us about your coding journey!"}
-                                </p>
-                                
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                                    {profileData.phoneNumber && (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem' }}>
-                                            <Phone size={16} color="var(--text-secondary)" /> {profileData.phoneNumber}
-                                        </div>
-                                    )}
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem' }}>
-                                        <Mail size={16} color="var(--text-secondary)" /> {profileData.email}
-                                    </div>
-                                </div>
-
-                                {profileData.socials && (
-                                    <div style={{ display: 'flex', gap: '15px', marginTop: '25px' }}>
-                                        {profileData.socials.github && <a href={profileData.socials.github} target="_blank" rel="noreferrer" style={{ color: 'var(--text-primary)' }}><Github size={20} /></a>}
-                                        {profileData.socials.linkedin && <a href={profileData.socials.linkedin} target="_blank" rel="noreferrer" style={{ color: 'var(--text-primary)' }}><Linkedin size={20} /></a>}
-                                        {profileData.socials.twitter && <a href={profileData.socials.twitter} target="_blank" rel="noreferrer" style={{ color: 'var(--text-primary)' }}><Twitter size={20} /></a>}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Skills */}
-                            <div className="glass-card" style={{ padding: '30px' }}>
-                                <h3 style={{ marginBottom: '20px' }}>Technical Skills</h3>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                                    {profileData.skills?.length > 0 ? (
-                                        profileData.skills.map((skill, idx) => (
-                                            <span key={idx} style={{ background: 'var(--bg-accent)', padding: '6px 15px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '600' }}>{skill}</span>
-                                        ))
-                                    ) : (
-                                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Add your skills to show off your expertise!</p>
-                                    )}
-                                </div>
+                            <div>
+                                <h1 style={{ fontSize: '2.5rem', fontWeight: '900', color: 'var(--text-primary)' }}>Change Password</h1>
+                                <p style={{ color: 'var(--text-secondary)' }}>Update your account's security credentials with enhanced policies.</p>
                             </div>
                         </div>
 
-                        {/* Learning Activities Column */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-                            <div className="glass-card" style={{ padding: '30px' }}>
-                                <h3 style={{ marginBottom: '20px', fontSize: '1.2rem' }}>Learning Stats</h3>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                                    <div style={{ background: 'var(--bg-accent)', padding: '15px', borderRadius: '15px', textAlign: 'center' }}>
-                                        <h4 style={{ fontSize: '1.5rem', color: 'var(--accent-primary)' }}>{profileData.enrolledCourses?.length || 0}</h4>
-                                        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Courses</p>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', alignItems: 'start' }}>
+                            <div className="glass-card" style={{ padding: '40px', background: 'var(--bg-primary)', border: '1px solid var(--border)' }}>
+                                <form onSubmit={handleSubmitPassword}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '25px', marginBottom: '35px' }}>
+                                        <div>
+                                            <label style={{ display: 'block', fontWeight: '800', fontSize: '0.9rem', marginBottom: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Old Password</label>
+                                            <input type="password" className="input-field" value={passwords.current} onChange={e => setPasswords({...passwords, current: e.target.value})} required placeholder="Enter current password" />
+                                        </div>
+                                        <hr style={{ border: 'none', height: '1px', background: 'var(--border)' }} />
+                                        <div>
+                                            <label style={{ display: 'block', fontWeight: '800', fontSize: '0.9rem', marginBottom: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>New Password</label>
+                                            <input type="password" className="input-field" value={passwords.next} onChange={e => setPasswords({...passwords, next: e.target.value})} required placeholder="Enter new password" />
+                                        </div>
+                                        <div>
+                                            <label style={{ display: 'block', fontWeight: '800', fontSize: '0.9rem', marginBottom: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Confirm New Password</label>
+                                            <input type="password" className="input-field" value={passwords.confirm} onChange={e => setPasswords({...passwords, confirm: e.target.value})} required placeholder="Confirm new password" />
+                                        </div>
                                     </div>
-                                    <div style={{ background: 'var(--bg-accent)', padding: '15px', borderRadius: '15px', textAlign: 'center' }}>
-                                        <h4 style={{ fontSize: '1.5rem', color: 'var(--success)' }}>{Object.keys(profileData.progress || {}).length}</h4>
-                                        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Active</p>
+
+                                    {passError && <div style={{ color: '#ef4444', marginBottom: '20px', fontWeight: '600', background: '#fef2f2', padding: '15px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}><AlertCircle size={18} /> {passError}</div>}
+                                    {passSuccess && <div style={{ color: '#10b981', marginBottom: '20px', fontWeight: '600', background: '#f0fdf4', padding: '15px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}><CheckCircle size={18} /> Password updated successfully!</div>}
+
+                                    <div style={{ display: 'flex', gap: '15px' }}>
+                                        <button type="submit" disabled={passLoading} className="btn btn-primary" style={{ background: '#f59e0b', padding: '16px 40px', flex: 1 }}>
+                                            {passLoading ? 'Updating...' : 'Update Password'}
+                                        </button>
+                                        <Link to="/profile" className="btn" style={{ padding: '16px 40px', background: 'var(--bg-accent)', flex: 1, textAlign: 'center', textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            Cancel
+                                        </Link>
                                     </div>
-                                </div>
-                            </div>
-                            
-                            {/* Feedback Form */}
-                            <div className="glass-card" style={{ padding: '30px' }}>
-                                <h3 style={{ marginBottom: '15px' }}>App Feedback</h3>
-                                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>Help us improve your learning experience.</p>
-                                <form onSubmit={handleFeedbackSubmit}>
-                                    <div style={{ display: 'flex', gap: '5px', marginBottom: '15px' }}>
-                                        {[1,2,3,4,5].map(star => (
-                                            <Star 
-                                                key={star} 
-                                                size={20} 
-                                                style={{ cursor: 'pointer' }} 
-                                                fill={feedback.rating >= star ? 'var(--accent-primary)' : 'none'} 
-                                                color={feedback.rating >= star ? 'var(--accent-primary)' : 'var(--text-secondary)'}
-                                                onClick={() => setFeedback({...feedback, rating: star})}
-                                            />
-                                        ))}
-                                    </div>
-                                    <textarea 
-                                        className="input-field" 
-                                        placeholder="Tell us what you think..." 
-                                        style={{ minHeight: '80px', fontSize: '0.9rem', marginBottom: '15px', padding: '10px' }}
-                                        value={feedback.message}
-                                        onChange={e => setFeedback({...feedback, message: e.target.value})}
-                                        required
-                                    />
-                                    <button className="btn" style={{ width: '100%', background: feedbackSent ? 'var(--success)' : 'var(--bg-accent)', color: feedbackSent ? 'white' : 'var(--text-primary)' }}>
-                                        {feedbackSent ? <><CheckCircle size={18}/> Sent! Thank You</> : "Submit Feedback"}
-                                    </button>
                                 </form>
                             </div>
-                        </div>
-                    </>
-                )}
-            </div>
 
-            {!isEditing && (
-                <>
-                    <hr style={{ border: 'none', height: '1px', background: 'var(--border)', margin: '60px 0' }} />
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
-                        {/* Column 1: Live Batches */}
-                        <div>
-                            <h2 style={{ marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' }}><Video size={24} /> My Live Batches</h2>
-                            {enrolledBatches.length === 0 ? (
-                                <div className="glass-card" style={{ padding: '30px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                                    No active live batches. <Link to="/" style={{ color: 'var(--accent-primary)' }}>Find your batch</Link>
+                            <div className="glass-card" style={{ padding: '30px', background: 'var(--bg-primary)', border: '1px solid var(--border)', fontSize: '0.85rem' }}>
+                                <h3 style={{ fontSize: '1.2rem', fontWeight: '900', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <ShieldCheck size={22} color="#f59e0b" /> Password Policies:
+                                </h3>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    {[
+                                        { label: "Must be at least 8 characters long.", valid: policyResults.len },
+                                        { label: "Password and Confirm Password must be the same.", valid: policyResults.match },
+                                        { label: "At least one uppercase and one lowercase letter.", valid: policyResults.upper && policyResults.lower },
+                                        { label: "At least one numeric digit and two special characters.", valid: policyResults.num && policyResults.twoSpec },
+                                        { label: "Illegal characters <, >, # and ; are not allowed.", valid: policyResults.illegal },
+                                        { label: "No sequences (e.g., 12345 or abcde).", valid: policyResults.seq },
+                                        { label: "No repeated series (e.g., AAA).", valid: policyResults.repeats },
+                                        { label: "No guessable patterns (NAME@12345, Coding@12345, etc).", valid: policyResults.personal && policyResults.lpu },
+                                        { label: "New and Old Password should not be the same.", valid: policyResults.unique }
+                                    ].map((policy, idx) => (
+                                        <div key={idx} style={{ 
+                                            display: 'flex', 
+                                            gap: '12px', 
+                                            color: policy.valid ? 'var(--success)' : 'var(--text-secondary)',
+                                            background: policy.valid ? '#10b98110' : 'transparent',
+                                            padding: '10px',
+                                            borderRadius: '8px',
+                                            fontWeight: policy.valid ? '700' : '500',
+                                            transition: 'all 0.2s'
+                                        }}>
+                                            <div style={{ marginTop: '2px' }}>
+                                                {policy.valid ? <CheckCircle size={16} fill="#10b981" color="white" /> : <div style={{ width: '16px', height: '16px', borderRadius: '50%', border: '2px solid var(--border)' }} />}
+                                            </div>
+                                            <span>{policy.label}</span>
+                                        </div>
+                                    ))}
                                 </div>
-                            ) : (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            </div>
+                        </div>
+                    </div>
+                ) : isCoursesView ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '80px', padding: '20px 0' }}>
+                        <div>
+                            <h2 style={{ fontSize: '2.5rem', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '10px' }}>Master Your Curriculum 🚀</h2>
+                            <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem' }}>All your enrolled cohorts and ongoing engineering drafts in one place.</p>
+                        </div>
+                        <div>
+                             <h2 style={{ fontSize: '2.2rem', fontWeight: '900', marginBottom: '30px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                <Video size={32} color="var(--accent-primary)" /> My Enrolled Batches
+                             </h2>
+                             {enrolledBatches.length > 0 ? (
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '30px' }}>
                                     {enrolledBatches.map(batch => (
-                                        <div key={batch._id} className="glass-card" style={{ padding: '25px', display: 'flex', gap: '20px', alignItems: 'center' }}>
-                                            <img src={batch.thumbnail} style={{ width: '100px', height: '100px', borderRadius: '12px', objectFit: 'cover' }} />
+                                        <div key={batch._id} className="glass-card fade-in" style={{ padding: '25px', display: 'flex', gap: '20px', alignItems: 'center', borderLeft: '6px solid var(--accent-primary)', background: 'var(--bg-primary)' }}>
+                                            <img src={batch.thumbnail} style={{ width: '110px', height: '110px', borderRadius: '18px', objectFit: 'cover', boxShadow: '0 8px 20px rgba(0,0,0,0.1)' }} />
                                             <div style={{ flex: 1 }}>
-                                                <h3 style={{ fontSize: '1.2rem', marginBottom: '8px' }}>{batch.title}</h3>
-                                                <p style={{ fontSize: '0.85rem', color: '#10b981', fontWeight: '700', marginBottom: '10px' }}>
-                                                    Live Startup: {new Date(batch.startDate).toLocaleDateString()}
-                                                </p>
-                                                <div style={{ display: 'flex', gap: '10px' }}>
-                                                    <Link to={`/lessons/${batch._id}/0`} style={{ textDecoration: 'none', flex: 1 }}>
-                                                        <button className="btn" style={{ width: '100%', background: 'var(--bg-accent)', fontSize: '0.85rem', padding: '10px' }}>
-                                                            Join Batch <ArrowRight size={16} />
-                                                        </button>
-                                                    </Link>
-                                                    <Link to={`/certificate/${batch._id}`} style={{ textDecoration: 'none', flex: 1 }}>
-                                                        <button className="btn" style={{ width: '100%', background: 'var(--success)15', color: 'var(--success)', fontSize: '0.85rem', padding: '10px', border: '1px solid var(--success)30' }}>
-                                                            <Award size={16} /> Certificate
-                                                        </button>
-                                                    </Link>
-                                                </div>
+                                                <h3 style={{ fontSize: '1.3rem', marginBottom: '12px', fontWeight: '800' }}>{batch.title}</h3>
+                                                <Link to={`/lessons/${batch._id}/0`}>
+                                                    <button className="btn" style={{ background: 'var(--bg-accent)', fontSize: '0.9rem', padding: '12px 25px', borderRadius: '12px', fontWeight: '700' }}>Continue Working</button>
+                                                </Link>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
-                            )}
-                        </div>
-
-                        {/* Column 2: Self-Paced Courses */}
-                        <div>
-                            <h2 id="courses" style={{ fontSize: '1.8rem', fontWeight: '800', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                            <Video size={28} color="#6366f1" strokeWidth={2.5} /> Upcoming Live Classes
-                        </h2>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '40px' }}>
-                            {upcomingClasses.length === 0 ? (
-                                <p style={{ color: 'var(--text-secondary)' }}>No live classes scheduled.</p>
-                            ) : upcomingClasses.map(cls => {
-                                const classDate = new Date(cls.classDate);
-                                const isLive = classDate <= new Date() && new Date(classDate.getTime() + 60*60*1000) >= new Date();
-                                const isUpcoming = classDate > new Date();
-                                return (
-                                    <div key={cls._id} className="glass-card" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: isLive ? '4px solid #ef4444' : 'none' }}>
-                                        <div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                                                {isLive ? <span style={{ background: '#ef4444', color: 'white', fontSize: '0.65rem', padding: '2px 8px', borderRadius: '4px', fontWeight: '800' }}>LIVE NOW</span> : 
-                                                 isUpcoming ? <span style={{ background: '#6366f1', color: 'white', fontSize: '0.65rem', padding: '2px 8px', borderRadius: '4px', fontWeight: '800' }}>UPCOMING</span> : 
-                                                 <span style={{ background: 'var(--bg-accent)', color: 'var(--text-secondary)', fontSize: '0.65rem', padding: '2px 8px', borderRadius: '4px', fontWeight: '800' }}>COMPLETED</span>}
-                                                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{classDate.toLocaleString()}</span>
-                                            </div>
-                                            <h4 style={{ fontSize: '1.1rem' }}>{cls.title}</h4>
-                                        </div>
-                                        <Link to={`/classroom/${cls._id}`} className="btn btn-primary" style={{ padding: '8px 20px', fontSize: '0.85rem' }}>
-                                            Join Classroom <ArrowRight size={16} />
-                                        </Link>
-                                    </div>
-                                );
-                            })}
-                        </div>
-
-                        <h2 id="courses" style={{ fontSize: '1.8rem', fontWeight: '800', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                            <GraduationCap size={28} color="var(--accent-primary)" strokeWidth={2.5} /> Enrolled Cohorts
-                        </h2>
-    {enrolledStandard.length === 0 ? (
-                                <div className="glass-card" style={{ padding: '30px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                                    No active courses. <Link to="/courses" style={{ color: 'var(--accent-primary)' }}>Browse library</Link>
+                             ) : (
+                                <div className="glass-card" style={{ padding: '80px 40px', textAlign: 'center', background: 'var(--bg-accent)', borderRadius: '32px' }}>
+                                    <Activity size={48} color="var(--text-secondary)" style={{ marginBottom: '20px', opacity: 0.5 }} />
+                                    <h3 style={{ fontSize: '1.2rem', fontWeight: '800' }}>No Active Batches Yet</h3>
+                                    <p style={{ color: 'var(--text-secondary)' }}>You haven't enrolled in any cohorts. Start your journey below!</p>
                                 </div>
-                            ) : (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                                    {enrolledStandard.map(course => {
-                                        const progressList = profileData.progress?.[course._id] || [];
-                                        const totalLessons = course.lessons?.length || 1;
-                                        const progress = Math.round((progressList.length / totalLessons) * 100);
-                                        
-                                        return (
-                                            <div key={course._id} className="glass-card" style={{ padding: '25px' }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-                                                    <h3 style={{ fontSize: '1.1rem' }}>{course.title}</h3>
-                                                    <span style={{ fontWeight: '700', color: 'var(--accent-primary)' }}>{progress}%</span>
-                                                </div>
-                                                <div style={{ background: 'var(--bg-accent)', height: '10px', borderRadius: '5px', overflow: 'hidden', marginBottom: '20px' }}>
-                                                    <div style={{ height: '100%', background: 'var(--accent-primary)', width: `${progress}%`, transition: 'width 0.5s ease' }} />
-                                                </div>
-                                                <div style={{ display: 'flex', gap: '10px' }}>
-                                                    <Link to={`/lessons/${course._id}/0`} style={{ textDecoration: 'none', flex: 1 }}>
-                                                        <button className="btn btn-primary" style={{ width: '100%', padding: '12px', fontSize: '0.9rem' }}>
-                                                            {progress >= 100 ? 'Review Course' : 'Resume Learning'}
-                                                        </button>
-                                                    </Link>
-                                                    {progress >= 50 && (
-                                                        <Link to={`/certificate/${course._id}`} style={{ textDecoration: 'none', flex: 1 }}>
-                                                            <button className="btn" style={{ width: '100%', padding: '12px', fontSize: '0.9rem', background: 'var(--success)', color: 'white' }}>
-                                                                <Award size={18} /> Certificate
-                                                            </button>
-                                                        </Link>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
+                             )}
                         </div>
-                    </div>
 
-                    {/* Favorites Section */}
-                    <div id="favorites" style={{ marginTop: '60px' }}>
-                        <h2 style={{ marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '10px' }}><Heart size={24} color="#ef4444" fill="#ef4444" /> Favorite Courses</h2>
-                        {profileData.favorites?.length === 0 ? (
-                            <p style={{ color: 'var(--text-secondary)' }}>Your watchlist is empty.</p>
-                        ) : (
-                            <div className="grid-courses">
-                                {profileData.favorites.map(course => (
-                                    <Link to={`/courses/${course._id}`} key={course._id} style={{ textDecoration: 'none', color: 'inherit' }}>
-                                        <div className="glass-card" style={{ padding: '20px', position: 'relative' }}>
-                                            <button 
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-                                                    toggleFavorite(course._id);
-                                                    setProfileData(prev => ({
-                                                        ...prev,
-                                                        favorites: prev.favorites.filter(f => f._id !== course._id)
-                                                    }));
-                                                }}
-                                                style={{ position: 'absolute', top: '15px', right: '15px', background: 'white', border: 'none', borderRadius: '50%', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10, boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
-                                            >
-                                                <Heart size={16} color="#ef4444" fill="#ef4444" />
-                                            </button>
-                                            <img src={course.thumbnail} style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '10px', marginBottom: '15px' }} />
-                                            <h4 style={{ fontWeight: '700' }}>{course.title}</h4>
-                                            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '5px' }}>{course.instructor}</p>
+                        {enrolledStandard.length > 0 && (
+                            <div>
+                                <h2 style={{ fontSize: '2.2rem', fontWeight: '900', marginBottom: '30px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                    <BookOpen size={32} color="#10b981" /> Individual Courses
+                                </h2>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '30px' }}>
+                                    {enrolledStandard.map(course => (
+                                        <div key={course._id} className="glass-card fade-in" style={{ padding: '25px', display: 'flex', gap: '20px', alignItems: 'center', borderLeft: '6px solid #10b981', background: 'var(--bg-primary)' }}>
+                                            <img src={course.thumbnail} style={{ width: '110px', height: '110px', borderRadius: '18px', objectFit: 'cover', boxShadow: '0 8px 20px rgba(0,0,0,0.1)' }} />
+                                            <div style={{ flex: 1 }}>
+                                                <h3 style={{ fontSize: '1.3rem', marginBottom: '12px', fontWeight: '800' }}>{course.title}</h3>
+                                                <Link to={`/courses/${course._id}`}>
+                                                    <button className="btn" style={{ background: 'var(--bg-accent)', fontSize: '0.9rem', padding: '12px 25px', borderRadius: '12px', fontWeight: '700' }}>View Content</button>
+                                                </Link>
+                                            </div>
                                         </div>
-                                    </Link>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>
-                </>
-            )}
-        </div>
-            {/* Avatar Selection Modal */}
-            {isAvatarModalOpen && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => setIsAvatarModalOpen(false)}>
-                    <div 
-                        className="glass-card fade-in" 
-                        style={{ maxWidth: '600px', width: '100%', padding: '40px', background: 'var(--bg-primary)', position: 'relative' }}
-                        onClick={e => e.stopPropagation()}
-                    >
-                        <button style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => setIsAvatarModalOpen(false)}><X /></button>
-                        <h2 style={{ fontSize: '1.8rem', fontWeight: '900', marginBottom: '10px' }}>Choose Profile Picture</h2>
-                        <p style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>Select a professional fellow avatar or upload your own creative profile image.</p>
-                        
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '15px', marginBottom: '30px' }}>
-                            {presetAvatars.map((url, i) => (
-                                <div 
-                                    key={i} 
-                                    onClick={() => { handleAvatarSelect(url); setIsAvatarModalOpen(false); }}
-                                    style={{ 
-                                        aspectRatio: '1/1', 
-                                        borderRadius: '20px', 
-                                        border: (profileData.avatar === url) ? '3px solid var(--accent-primary)' : '1px solid var(--border)',
-                                        cursor: 'pointer',
-                                        overflow: 'hidden',
-                                        transition: 'all 0.2s',
-                                        background: 'var(--bg-accent)',
-                                        padding: '5px'
-                                    }}
-                                    onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-primary)'}
-                                    onMouseLeave={e => e.currentTarget.style.borderColor = (profileData.avatar === url) ? 'var(--accent-primary)' : 'var(--border)'}
-                                >
-                                    <img src={url} style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt="avatar-option" />
+                ) : isEditing ? (
+                    /* Edit Profile Mode */
+                    <div className="glass-card" style={{ padding: '40px' }}>
+                        <h2 style={{ marginBottom: '30px', display: 'flex', alignItems: 'center', gap: '12px' }}><Edit3 size={24} /> Edit Your Profile</h2>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+                             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Full Name</label>
+                                    <input type="text" className="input-field" value={editData.name} onChange={e => setEditData({...editData, name: e.target.value})} placeholder="e.g. Ravi Kumar" />
                                 </div>
-                            ))}
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Occupation</label>
+                                    <input type="text" className="input-field" value={editData.occupation} onChange={e => setEditData({...editData, occupation: e.target.value})} placeholder="e.g. Senior Software Engineer" />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Bio</label>
+                                    <textarea className="input-field" style={{ minHeight: '120px' }} value={editData.bio} onChange={e => setEditData({...editData, bio: e.target.value})} placeholder="Tell us about your technical journey..." />
+                                </div>
+                            </div>
+                             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Skills (Comma Separated)</label>
+                                    <input type="text" className="input-field" value={editData.skills} onChange={e => setEditData({...editData, skills: e.target.value})} placeholder="e.g. React, Node.js, Python" />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Phone Number</label>
+                                    <input type="text" className="input-field" value={editData.phoneNumber} onChange={e => setEditData({...editData, phoneNumber: e.target.value})} placeholder="e.g. +91 9876543210" />
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>GitHub</label>
+                                        <input type="text" className="input-field" value={editData.socials?.github} onChange={e => setEditData({...editData, socials: {...editData.socials, github: e.target.value}})} placeholder="github.com/username" />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>LinkedIn</label>
+                                        <input type="text" className="input-field" value={editData.socials?.linkedin} onChange={e => setEditData({...editData, socials: {...editData.socials, linkedin: e.target.value}})} placeholder="linkedin.com/in/username" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '15px', marginTop: '40px' }}>
+                            <button disabled={saveLoading} onClick={handleSave} className="btn btn-primary" style={{ flex: 1, padding: '15px' }}>
+                                {saveLoading ? 'Saving...' : 'Save Changes'}
+                            </button>
+                            <button onClick={() => setIsEditing(false)} className="btn" style={{ flex: 1, padding: '15px', background: 'var(--bg-accent)' }}>
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    /* Default Dashboard / Profile View */
+                    <>
+                        {/* Premium Full Profile Hero */}
+                        <div style={{ position: 'relative', marginBottom: '60px' }}>
+                            <div className="glass-card" style={{ padding: '60px 40px', background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(67, 56, 202, 0.1) 100%)', border: '1px solid var(--border)', borderRadius: '32px', textAlign: 'center', overflow: 'hidden' }}>
+                                <div style={{ position: 'absolute', top: '30px', left: '40px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <img src="/logo_dark.png" style={{ width: '32px', height: '32px', borderRadius: '8px', opacity: 0.8 }} alt="C-C" />
+                                    <span style={{ fontSize: '0.8rem', fontWeight: '900', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '2px', opacity: 0.8 }}>Coding Classes</span>
+                                </div>
+                                <div style={{ position: 'absolute', top: '-100px', right: '-100px', width: '300px', height: '300px', background: 'var(--accent-primary)', opacity: 0.1, filter: 'blur(100px)', zIndex: -1 }}></div>
+                                <div style={{ position: 'absolute', bottom: '-100px', left: '-100px', width: '300px', height: '300px', background: 'var(--success)', opacity: 0.1, filter: 'blur(100px)', zIndex: -1 }}></div>
+
+                                <div 
+                                    style={{ position: 'relative', width: '180px', height: '180px', margin: '0 auto 30px', cursor: 'pointer' }}
+                                    onClick={() => setIsAvatarModalOpen(true)}
+                                >
+                                    <img 
+                                        src={(() => {
+                                            if (!profileData.avatar) return "https://cdn-icons-png.flaticon.com/128/3177/3177440.png";
+                                            let url = profileData.avatar;
+                                            // Transform Google Drive links to direct view
+                                            if (url.includes('drive.google.com')) {
+                                                const id = url.split('/d/')[1]?.split('/')[0] || url.split('id=')[1]?.split('&')[0];
+                                                if (id) return `https://lh3.googleusercontent.com/d/${id}`;
+                                            }
+                                            if (url.startsWith('http')) return url;
+                                            // Handle relative paths and avoid double uploads
+                                            const cleanPath = url.replace(/^\/?uploads\/?/, '');
+                                            return `${ASSET_URL}${cleanPath}`;
+                                        })()} 
+                                        style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', border: '8px solid var(--bg-primary)', boxShadow: '0 20px 40px -10px rgba(0,0,0,0.2)' }} 
+                                        alt={profileData.name} 
+                                    />
+                                    <div style={{ position: 'absolute', bottom: '10px', right: '10px', background: 'var(--accent-primary)', color: 'white', padding: '10px', borderRadius: '50%', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                                        <Edit3 size={20} />
+                                    </div>
+                                </div>
+
+                                <h1 style={{ fontSize: '3rem', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '10px' }}>{profileData.name}</h1>
+                                <p style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', marginBottom: '30px', fontWeight: '600' }}>{profileData.occupation || 'Platform Resident Engineer'}</p>
+
+                                <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
+                                    <div style={{ background: 'var(--bg-primary)', padding: '12px 25px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '10px', border: '1px solid var(--border)' }}>
+                                        <Award size={20} color="var(--accent-primary)" />
+                                        <span style={{ fontWeight: '800' }}>#{profileData.registrationNumber || '2024'}</span>
+                                    </div>
+                                    <div style={{ background: 'var(--bg-primary)', padding: '12px 25px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '10px', border: '1px solid var(--border)' }}>
+                                        <CheckCircle size={20} color="var(--success)" />
+                                        <span style={{ fontWeight: '800' }}>Level {profileData.enrolledCourses?.length || 0}</span>
+                                    </div>
+                                    <div style={{ background: 'var(--bg-primary)', padding: '12px 25px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '10px', border: '1px solid var(--border)' }}>
+                                        <TrendingUp size={20} color="#f59e0b" />
+                                        <span style={{ fontWeight: '800' }}>{Object.keys(profileData.progress || {}).length} Actives</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <div style={{ borderTop: '1px solid var(--border)', paddingTop: '25px', display: 'flex', gap: '15px', alignItems: 'center' }}>
-                            <div style={{ flex: 1 }}>
-                                <p style={{ fontWeight: '800', fontSize: '0.9rem' }}>Upload Personal Photo</p>
-                                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Max file size 2MB</p>
+                        {/* Profile Details Grid */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(400px, 1fr) 1.5fr', gap: '50px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
+                                <div className="glass-card" style={{ padding: '40px' }}>
+                                    <h3 style={{ fontSize: '1.5rem', fontWeight: '900', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                        <Mail size={24} color="var(--accent-primary)" /> Contact Details
+                                    </h3>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                        <div style={{ display: 'flex', gap: '15px' }}>
+                                            <div style={{ width: '40px', height: '40px', background: 'var(--bg-accent)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}><Mail size={18}/></div>
+                                            <div>
+                                                <p style={{ fontSize: '0.75rem', fontWeight: '900', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Email Address</p>
+                                                <p style={{ fontWeight: '700' }}>{profileData.email}</p>
+                                            </div>
+                                        </div>
+                                        {profileData.phoneNumber && (
+                                            <div style={{ display: 'flex', gap: '15px' }}>
+                                                <div style={{ width: '40px', height: '40px', background: 'var(--bg-accent)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}><Phone size={18}/></div>
+                                                <div>
+                                                    <p style={{ fontSize: '0.75rem', fontWeight: '900', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Phone Number</p>
+                                                    <p style={{ fontWeight: '700' }}>{profileData.phoneNumber}</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                        <div style={{ display: 'flex', gap: '15px' }}>
+                                            <div style={{ width: '40px', height: '40px', background: 'var(--bg-accent)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}><Clock size={18}/></div>
+                                            <div>
+                                                <p style={{ fontSize: '0.75rem', fontWeight: '900', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Member Since</p>
+                                                <p style={{ fontWeight: '700' }}>March 2024</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => setIsEditing(true)} className="btn btn-primary" style={{ width: '100%', marginTop: '40px', background: 'var(--accent-primary)', padding: '14px' }}>Update Profile Info</button>
+                                </div>
+
+                                <div className="glass-card" style={{ padding: '40px' }}>
+                                    <h3 style={{ fontSize: '1.5rem', fontWeight: '900', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                        <TrendingUp size={24} color="#10b981" /> Engineering Skills
+                                    </h3>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                                        {(profileData.skills || ['Full-Stack', 'Data Structures', 'System Design']).map(skill => (
+                                            <span key={skill} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: 'var(--bg-accent)', borderRadius: '14px', fontSize: '0.9rem', fontWeight: '700', color: 'var(--text-primary)' }}>
+                                                <Code size={16} color="var(--accent-primary)" /> {skill}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
-                            <label className="btn btn-primary" style={{ padding: '12px 24px', cursor: 'pointer' }}>
-                                <ImageIcon size={18} /> Choose File
-                                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { handleAvatarUpload(e.target.files[0]); setIsAvatarModalOpen(false); }} />
-                            </label>
+
+                            <div className="glass-card" style={{ padding: '40px' }}>
+                                <h3 style={{ fontSize: '1.5rem', fontWeight: '900', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                    <BookOpen size={24} color="var(--accent-primary)" /> Professional Biography
+                                </h3>
+                                <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', lineHeight: 1.8, marginBottom: '40px' }}>
+                                    {profileData.bio || "You haven't written a biography yet! Tell the platform about your technical background, specializations, and engineering goals."}
+                                </p>
+                                
+                                <h3 style={{ fontSize: '1.3rem', fontWeight: '900', marginBottom: '20px' }}>Academic Progress</h3>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                    <div style={{ background: 'var(--bg-accent)', padding: '25px', borderRadius: '24px', border: '1px solid var(--border)' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
+                                            <span style={{ fontWeight: '800' }}>Overall Curriculum Mastery</span>
+                                            <span style={{ color: 'var(--accent-primary)', fontWeight: '900' }}>{Math.min(100, (profileData.enrolledCourses?.length || 0) * 15)}%</span>
+                                        </div>
+                                        <div style={{ height: '12px', background: 'var(--bg-primary)', borderRadius: '6px', overflow: 'hidden' }}>
+                                            <div style={{ height: '100%', background: 'linear-gradient(to right, var(--accent-primary), #4338ca)', width: `${Math.min(100, (profileData.enrolledCourses?.length || 0) * 15)}%`, borderRadius: '6px' }}></div>
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                                        <div className="glass-card" style={{ padding: '20px', background: 'rgba(16, 185, 129, 0.05)', border: '1px solid #10b98130' }}>
+                                            <p style={{ fontSize: '0.8rem', fontWeight: '900', color: '#059669', textTransform: 'uppercase', marginBottom: '5px' }}>Batch Status</p>
+                                            <p style={{ fontSize: '1.2rem', fontWeight: '900' }}>Active Resident</p>
+                                        </div>
+                                        <div className="glass-card" style={{ padding: '20px', background: 'rgba(245, 158, 11, 0.05)', border: '1px solid #f59e0b30' }}>
+                                            <p style={{ fontSize: '0.8rem', fontWeight: '900', color: '#d97706', textTransform: 'uppercase', marginBottom: '5px' }}>Project Rank</p>
+                                            <p style={{ fontSize: '1.2rem', fontWeight: '900' }}>Senior Builder</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+
+                        {/* Merged: My Enrolled Batches (ONLY FOR STUDENTS) */}
+                        {profileData.role === 'student' && (
+                            <div style={{ marginTop: '80px', display: 'flex', flexDirection: 'column', gap: '60px' }}>
+                                 <div>
+                                    <h2 style={{ fontSize: '2.5rem', fontWeight: '900', marginBottom: '35px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                        <Video size={36} color="var(--accent-primary)" /> My Enrolled Batches
+                                    </h2>
+                                    {enrolledBatches.length > 0 ? (
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '30px' }}>
+                                            {enrolledBatches.map(batch => (
+                                                <div key={batch._id} className="glass-card fade-in" style={{ padding: '25px', display: 'flex', gap: '20px', alignItems: 'center', borderLeft: '6px solid var(--accent-primary)', background: 'var(--bg-primary)' }}>
+                                                    <img src={batch.thumbnail} style={{ width: '110px', height: '110px', borderRadius: '18px', objectFit: 'cover', boxShadow: '0 8px 20px rgba(0,0,0,0.1)' }} />
+                                                    <div style={{ flex: 1 }}>
+                                                        <h3 style={{ fontSize: '1.3rem', marginBottom: '12px', fontWeight: '800' }}>{batch.title}</h3>
+                                                        <Link to={`/lessons/${batch._id}/0`}>
+                                                            <button className="btn" style={{ background: 'var(--bg-accent)', fontSize: '0.9rem', padding: '12px 25px', borderRadius: '12px', fontWeight: '700' }}>Continue Working</button>
+                                                        </Link>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="glass-card" style={{ padding: '60px 40px', textAlign: 'center', background: 'var(--bg-accent)', borderRadius: '32px' }}>
+                                            <Activity size={48} color="var(--text-secondary)" style={{ marginBottom: '20px', opacity: 0.5 }} />
+                                            <h3 style={{ fontSize: '1.2rem', fontWeight: '800' }}>No Active Batches</h3>
+                                            <p style={{ color: 'var(--text-secondary)' }}>You are not currently enrolled in any cohorts.</p>
+                                        </div>
+                                    )}
+                                 </div>
+
+                                 {enrolledStandard.length > 0 && (
+                                     <div>
+                                        <h2 style={{ fontSize: '2.5rem', fontWeight: '900', marginBottom: '35px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                            <BookOpen size={36} color="#10b981" /> Individual Courses
+                                        </h2>
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '30px' }}>
+                                            {enrolledStandard.map(course => (
+                                                <div key={course._id} className="glass-card fade-in" style={{ padding: '25px', display: 'flex', gap: '20px', alignItems: 'center', borderLeft: '6px solid #10b981', background: 'var(--bg-primary)' }}>
+                                                    <img src={course.thumbnail} style={{ width: '110px', height: '110px', borderRadius: '18px', objectFit: 'cover', boxShadow: '0 8px 20px rgba(0,0,0,0.1)' }} />
+                                                    <div style={{ flex: 1 }}>
+                                                        <h3 style={{ fontSize: '1.3rem', marginBottom: '12px', fontWeight: '800' }}>{course.title}</h3>
+                                                        <Link to={`/courses/${course._id}`}>
+                                                            <button className="btn" style={{ background: 'var(--bg-accent)', fontSize: '0.9rem', padding: '12px 25px', borderRadius: '12px', fontWeight: '700' }}>View Content</button>
+                                                        </Link>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                     </div>
+                                 )}
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
+
+            {/* Avatar Modal */}
+            {isAvatarModalOpen && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => setIsAvatarModalOpen(false)}>
+                    <div className="glass-card" style={{ maxWidth: '600px', width: '100%', padding: '40px', background: 'var(--bg-primary)', position: 'relative' }} onClick={e => e.stopPropagation()}>
+                        <button style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => setIsAvatarModalOpen(false)}><X /></button>
+                        <h2 style={{ fontSize: '1.8rem', fontWeight: '900', marginBottom: '10px' }}>Choose Profile Picture</h2>
+                        {/* Live Preview */}
+                        {avatarUrlInput.length > 5 && (
+                            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                                <p style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '10px' }}>Preview</p>
+                                <img 
+                                    src={(() => {
+                                        let url = avatarUrlInput;
+                                        if (url.includes('drive.google.com')) {
+                                            const id = url.split('/d/')[1]?.split('/')[0] || url.split('id=')[1]?.split('&')[0];
+                                            if (id) return `https://lh3.googleusercontent.com/d/${id}`;
+                                        }
+                                        return url;
+                                    })()}
+                                    onError={(e) => { e.target.style.display = 'none'; }}
+                                    onLoad={(e) => { e.target.style.display = 'inline-block'; }}
+                                    style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover', border: '4px solid var(--accent-primary)', display: 'none' }}
+                                    alt="preview"
+                                />
+                            </div>
+                        )}
+
+                        <div style={{ marginBottom: '20px' }}>
+                            <label style={{ display: 'block', marginBottom: '10px', fontSize: '0.9rem', fontWeight: '700', color: 'var(--text-secondary)' }}>Add via Drive/Cloud Link</label>
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <input 
+                                    className="input-field" 
+                                    placeholder="Paste your photo URL here..." 
+                                    style={{ flex: 1 }}
+                                    value={avatarUrlInput}
+                                    onChange={(e) => setAvatarUrlInput(e.target.value)}
+                                    onKeyPress={(e) => {
+                                        if (e.key === 'Enter' && avatarUrlInput) {
+                                            handleAvatarSelect(avatarUrlInput);
+                                            setIsAvatarModalOpen(false);
+                                            setAvatarUrlInput('');
+                                        }
+                                    }}
+                                />
+                                <button 
+                                    onClick={() => {
+                                        if (avatarUrlInput) {
+                                            handleAvatarSelect(avatarUrlInput);
+                                            setIsAvatarModalOpen(false);
+                                            setAvatarUrlInput('');
+                                        }
+                                    }}
+                                    className="btn btn-primary" 
+                                    style={{ padding: '0 20px', opacity: avatarUrlInput ? 1 : 0.5 }}
+                                    disabled={!avatarUrlInput}
+                                >
+                                    Apply
+                                </button>
+                            </div>
+                            <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '8px' }}>Paste a direct link from Google Drive, Dropbox, or any web host.</p>
+                        </div>
+
+                        <div style={{ position: 'relative', textAlign: 'center', marginBottom: '10px' }}>
+                            <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: '1px', background: 'var(--border)', zIndex: 0 }} />
+                            <span style={{ position: 'relative', background: 'var(--bg-primary)', padding: '0 15px', color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: '700', zIndex: 1 }}>OR</span>
+                        </div>
+
+                        <label className="btn btn-primary" style={{ padding: '16px 24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', background: 'var(--bg-accent)', color: 'var(--text-primary)', border: '1px solid var(--border)', marginTop: '20px' }}>
+                            <ImageIcon size={18} /> Choose File from Computer
+                            <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { handleAvatarUpload(e.target.files[0]); setIsAvatarModalOpen(false); setAvatarUrlInput(''); }} />
+                        </label>
                     </div>
                 </div>
             )}

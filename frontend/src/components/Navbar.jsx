@@ -1,11 +1,12 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { ASSET_URL } from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sun, Moon, Search, LogOut, Code2, Shield, Layout, Bell, User as UserIcon, Menu, X, ChevronDown } from 'lucide-react';
+import { Sun, Moon, Search, LogOut, Code2, Shield, Layout, Bell, User as UserIcon, Menu, X, ChevronDown, GraduationCap, BookOpen } from 'lucide-react';
 
 const Navbar = () => {
     const { user, logout } = useAuth();
@@ -13,22 +14,11 @@ const Navbar = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const [scrolled, setScrolled] = useState(false);
-    const [searchFocused, setSearchFocused] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [searchCategory, setSearchCategory] = useState('all');
+    const [userMenuOpen, setUserMenuOpen] = useState(false);
+    const userMenuRef = useRef(null);
 
-    const handleSearch = () => {
-        if (!searchQuery.trim()) return;
-        if (searchCategory === 'ai') {
-            window.dispatchEvent(new CustomEvent('open-ai-assistant', { detail: searchQuery }));
-        } else if (searchCategory === 'content') {
-            navigate(`/content?search=${encodeURIComponent(searchQuery)}`);
-        } else {
-            navigate(`/courses?search=${encodeURIComponent(searchQuery)}`);
-        }
-        setSearchQuery('');
-    };
+
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -36,15 +26,30 @@ const Navbar = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    // Auto-close menus on route change
+    useEffect(() => {
+        setMobileMenuOpen(false);
+        setUserMenuOpen(false);
+    }, [location.pathname, location.hash]);
+
+    // Click outside listener
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+                setUserMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
     const navLinks = [
         { name: 'Home', path: '/' },
-        { name: 'Academy', path: '/courses' },
-        { name: 'Insights', path: '/content' },
+        { name: 'Courses', path: '/courses' },
+        { name: 'Insights & Updates', path: '/content' },
     ];
 
-    if (user) {
-        navLinks.push({ name: 'Dashboard', path: '/profile' });
-    }
+
 
     return (
         <nav className={`
@@ -55,15 +60,19 @@ const Navbar = () => {
         `}>
             <div className="flex items-center justify-between px-6 md:px-12 w-full max-w-[1400px] mx-auto">
                 {/* ── Brand ── */}
-                <Link to="/" className="flex items-center gap-3 group shrink-0">
+                <Link to="/" className="flex items-center gap-4 group shrink-0">
                     <motion.div 
-                        whileHover={{ rotate: 10, scale: 1.1 }}
-                        className="bg-gradient-to-br from-indigo-500 to-cyan-400 p-2 rounded-xl text-white shadow-lg shadow-cyan-500/20"
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        className="relative"
                     >
-                        <Code2 size={24} />
+                        <img 
+                            src="/logo_dark.png" 
+                            alt="Coding Classes Official Logo" 
+                            style={{ width: '48px', height: '48px', borderRadius: '14px', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.1)' }} 
+                        />
                     </motion.div>
                     <span 
-                        className="text-[2rem] leading-none font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-indigo-400 drop-shadow-sm pb-1"
+                        className="text-[2.2rem] leading-none font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-indigo-400 drop-shadow-lg pb-1"
                         style={{ fontFamily: "'Dancing Script', cursive" }}
                     >
                         Coding Classes
@@ -97,44 +106,7 @@ const Navbar = () => {
                     ))}
                 </div>
 
-                {/* ── Search Bar ── */}
-                <div className={`
-                    hidden md:flex items-center gap-2 px-3 py-2 rounded-sm transition-all duration-300 border
-                    ${searchFocused 
-                        ? 'bg-slate-800/80 border-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.2)] min-w-[300px]' 
-                        : 'bg-slate-800/40 border-slate-600 hover:border-slate-500 w-64'}
-                `}>
-                    <div className="relative flex items-center group">
-                        <select 
-                            value={searchCategory}
-                            onChange={(e) => setSearchCategory(e.target.value)}
-                            className="bg-transparent border-none outline-none text-[10px] font-black text-slate-400 cursor-pointer appearance-none uppercase tracking-widest transition-colors hover:text-white pr-4"
-                        >
-                            <option value="all" className="bg-slate-900 text-white font-bold">ALL</option>
-                            <option value="content" className="bg-slate-900 text-white font-bold">INSIGHTS</option>
-                            <option value="ai" className="bg-slate-900 text-cyan-400 font-bold">ASK AI</option>
-                            <option value="courses" className="bg-slate-900 text-white font-bold">COURSES</option>
-                        </select>
-                        <ChevronDown size={12} className="absolute right-0 text-slate-500 pointer-events-none group-hover:text-cyan-400 transition-colors" />
-                    </div>
-                    <div className="w-[1px] h-4 bg-slate-600 mx-1 shrink-0" />
-                    <input 
-                        type="text" 
-                        placeholder="Search..." 
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                        className="bg-transparent border-none outline-none text-sm w-full text-white placeholder-slate-400 text-center"
-                        onFocus={() => setSearchFocused(true)}
-                        onBlur={() => setSearchFocused(false)}
-                    />
-                    <button 
-                        onClick={handleSearch}
-                        className={`p-1.5 flex items-center justify-center rounded-sm transition-colors ${searchFocused ? 'text-cyan-400 hover:bg-cyan-400/10' : 'text-slate-400 hover:text-white hover:bg-slate-700/50'}`}
-                    >
-                        <Search size={16} />
-                    </button>
-                </div>
+
 
                 {/* ── Actions ── */}
                 <div className="flex items-center gap-6 shrink-0">
@@ -158,30 +130,104 @@ const Navbar = () => {
                     )}
 
                     {user ? (
-                        <div className="flex items-center gap-3">
-                            <Link to="/profile" className="flex items-center gap-3 pl-2 transition-transform hover:scale-105">
-                                <div className="relative">
-                                    <img 
-                                        src={user.avatar ? (user.avatar.startsWith('http') ? user.avatar : `${ASSET_URL}${user.avatar}`) : "https://cdn-icons-png.flaticon.com/128/3177/3177440.png"} 
-                                        className="w-10 h-10 rounded-xl object-cover border-2 border-indigo-600/20 shadow-lg"
-                                        alt="avatar" 
-                                    />
-                                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full" />
-                                </div>
-                                <div className="hidden lg:flex flex-col -space-y-1">
-                                    <span className="text-sm font-bold text-white">{user.name.split(' ')[0]}</span>
-                                    <span className="text-[10px] uppercase font-black tracking-widest text-indigo-400">{user.role}</span>
-                                </div>
-                            </Link>
+                        <div className="flex items-center gap-6 relative" ref={userMenuRef}>
+                            {/* User Folder/Dropdown */}
+                            <div className="relative">
+                                <button 
+                                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                                    className="flex items-center gap-3 pl-2 transition-all hover:opacity-80 group py-1"
+                                >
+                                    <div className="relative">
+                                        <img 
+                                            src={(() => {
+                                                if (!user.avatar) return "https://cdn-icons-png.flaticon.com/128/3177/3177440.png";
+                                                let url = user.avatar;
+                                                if (url.includes('drive.google.com')) {
+                                                    const id = url.split('/d/')[1]?.split('/')[0] || url.split('id=')[1]?.split('&')[0];
+                                                    if (id) return `https://lh3.googleusercontent.com/d/${id}`;
+                                                }
+                                                if (url.startsWith('http')) return url;
+                                                const cleanPath = url.replace(/^\/?uploads\/?/, '');
+                                                return `${ASSET_URL}${cleanPath}`;
+                                            })()} 
+                                            className="w-10 h-10 rounded-xl object-cover border-2 border-indigo-600/20 shadow-lg group-hover:border-indigo-500/50 transition-colors"
+                                            alt="avatar" 
+                                        />
+                                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-slate-900 rounded-full" />
+                                    </div>
+                                    <div className="hidden lg:flex flex-col items-start -space-y-1">
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-sm font-bold text-white">{user.name.split(' ')[0]}'s Dashboard</span>
+                                            <ChevronDown size={14} className={`text-slate-400 transition-transform duration-300 ${userMenuOpen ? 'rotate-180' : ''}`} />
+                                        </div>
+                                        <span className="text-[10px] uppercase font-black tracking-widest text-indigo-400">{user.role}</span>
+                                    </div>
+                                </button>
 
-                            <motion.button 
-                                whileTap={{ scale: 0.95 }}
-                                onClick={logout}
-                                className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-bold text-slate-400 hover:text-white hover:bg-rose-500 transition-all shadow-sm hover:shadow-rose-500/25"
-                            >
-                                <LogOut size={16} />
-                                <span className="hidden sm:inline">Sign Out</span>
-                            </motion.button>
+                                {/* Dropdown Menu (The "Folder") */}
+                                <AnimatePresence>
+                                    {userMenuOpen && (
+                                        <motion.div 
+                                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                            className="absolute right-0 mt-3 w-56 bg-slate-900/95 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl p-2 z-[1100]"
+                                        >
+                                            <div className="px-3 py-2 border-b border-slate-800/50 mb-1">
+                                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">My Workspace</p>
+                                            </div>
+                                            
+
+                                            {user.role === 'student' && (
+                                                <Link 
+                                                    to="/profile#my-courses" 
+                                                    onClick={() => setUserMenuOpen(false)}
+                                                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                                                >
+                                                    <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+                                                        <BookOpen size={18} />
+                                                    </div>
+                                                    My Courses
+                                                </Link>
+                                            )}
+
+                                            <Link 
+                                                to="/profile" 
+                                                onClick={() => setUserMenuOpen(false)}
+                                                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                                            >
+                                                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                                                    <UserIcon size={18} />
+                                                </div>
+                                                All Profile
+                                            </Link>
+
+                                            <Link 
+                                                to="/profile#security" 
+                                                onClick={() => setUserMenuOpen(false)}
+                                                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                                            >
+                                                <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400">
+                                                    <Shield size={18} />
+                                                </div>
+                                                Change Password
+                                            </Link>
+
+
+
+                                            <div className="mt-2 pt-2 border-t border-slate-800/50">
+                                                <button 
+                                                    onClick={() => { logout(); setUserMenuOpen(false); }}
+                                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-rose-400 hover:bg-rose-500/10 transition-all"
+                                                >
+                                                    <LogOut size={18} />
+                                                    Sign Out
+                                                </button>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
                         </div>
                     ) : (
                         <div className="flex items-center gap-5">

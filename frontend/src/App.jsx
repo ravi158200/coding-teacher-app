@@ -21,6 +21,7 @@ import Classroom from './pages/Classroom';
 import FloatingAdminBtn from './components/FloatingAdminBtn';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
+import VerifyCertificate from './pages/VerifyCertificate';
 import ProtectedRoute from './components/ProtectedRoute';
 import Certificate from './certificate/Certificate';
 import { Code2, Github, Twitter, Linkedin, MessageCircle, MapPin, Phone, Mail as MailIcon } from 'lucide-react';
@@ -30,6 +31,14 @@ import AIAssistant from './components/AIAssistant';
 
 function App() {
   const [isEnquiryOpen, setIsEnquiryOpen] = React.useState(false);
+  const [targetBatch, setTargetBatch] = React.useState('');
+
+  React.useEffect(() => {
+    window.openEnquiryModal = (batchTitle) => {
+      setTargetBatch(batchTitle || '');
+      setIsEnquiryOpen(true);
+    };
+  }, []);
   
   return (
     <ThemeProvider>
@@ -61,6 +70,7 @@ function App() {
                 <Route path="/content/:id" element={<ContentDetail />} />
                 <Route path="/classroom/:id" element={<Classroom />} />
                 <Route path="/certificate/:courseId" element={<Certificate />} />
+                <Route path="/verify-certificate" element={<VerifyCertificate />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/terms" element={<TermsOfService />} />
                 <Route path="/components" element={<ComponentsDemo />} />
@@ -99,8 +109,9 @@ function App() {
                     <h4 className="text-slate-800 dark:text-white font-bold mb-10">Platform</h4>
                     <ul className="space-y-8 text-sm text-slate-500 dark:text-slate-400">
                       <li><Link to="/" className="hover:text-indigo-600 transition-colors">Home</Link></li>
-                      <li><Link to="/courses" className="hover:text-indigo-600 transition-colors">Academy</Link></li>
+                      <li><Link to="/courses" className="hover:text-indigo-600 transition-colors">Courses</Link></li>
                       <li><Link to="/content" className="hover:text-indigo-600 transition-colors">Insights</Link></li>
+                      <li><Link to="/verify-certificate" className="hover:text-indigo-600 transition-colors">Verify Certificate</Link></li>
                     </ul>
                   </div>
 
@@ -147,7 +158,7 @@ function App() {
                 </div>
 
                 <div className="pt-16 mt-8 border-t border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center gap-6 text-sm font-medium text-slate-400 text-center">
-                  <p>© 2026 Coding Classes Academy. All rights reserved.</p>
+                  <p>© 2026 Coding Classes. All rights reserved.</p>
                   <div className="flex gap-8">
                     <Link to="/privacy" className="hover:text-indigo-600 transition-colors">Privacy Policy</Link>
                     <Link to="/terms" className="hover:text-indigo-600 transition-colors">Terms of Service</Link>
@@ -156,7 +167,7 @@ function App() {
               </div>
             </footer>
 
-            <EnquiryModal isOpen={isEnquiryOpen} onClose={() => setIsEnquiryOpen(false)} />
+            <EnquiryModal isOpen={isEnquiryOpen} onClose={() => setIsEnquiryOpen(false)} courseTitle={targetBatch} />
             
             {/* AI Coding Assistant Widget */}
             <AIAssistant />

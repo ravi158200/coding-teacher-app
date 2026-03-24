@@ -92,7 +92,7 @@ const AdminDashboard = () => {
   const [courseForm, setCourseForm] = useState({
     title: '', description: '', instructor: user?.name || '',
     thumbnail: '', category: 'Web Development', price: '', originalPrice: '',
-    isBatch: false, startDate: '',
+    isBatch: false, startDate: '', accessDuration: 6, maxStudents: 50,
     lessons: [{ title: '', content: '', videoUrl: '', duration: '' }],
     quizzes: [{ question: '', options: ['', '', '', ''], correctAnswer: 0 }]
   });
@@ -104,6 +104,7 @@ const AdminDashboard = () => {
   });
   const [editingContent, setEditingContent] = useState(null);
   const [showContentForm, setShowContentForm] = useState(false);
+  const [editingCourse, setEditingCourse] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
   const [userEditForm, setUserEditForm] = useState({ name: '', email: '', bio: '', occupation: '', phoneNumber: '', role: '' });
 
@@ -188,11 +189,39 @@ const AdminDashboard = () => {
   const handleSubmitCourse = async (e) => {
     e.preventDefault();
     try {
-      await API.post('/courses', courseForm);
-      setMsg('Course created! Upload videos in the Courses tab.');
+      if (editingCourse) {
+        await API.put(`/courses/${editingCourse._id}`, courseForm);
+        setMsg('Course updated successfully!');
+      } else {
+        await API.post('/courses', courseForm);
+        setMsg('Course created! Upload videos in the Courses tab.');
+      }
       setTimeout(() => setMsg(''), 5000);
-      setCourseForm({ title: '', description: '', instructor: user?.name || '', thumbnail: '', category: 'Web Development', price: '', originalPrice: '', isBatch: false, startDate: '', lessons: [{ title: '', content: '', videoUrl: '', duration: '' }], quizzes: [{ question: '', options: ['', '', '', ''], correctAnswer: 0 }] });
-    } catch (err) { alert(err.response?.data?.message || 'Error creating course'); }
+      setCourseForm({ title: '', description: '', instructor: user?.name || '', thumbnail: '', category: 'Web Development', price: '', originalPrice: '', isBatch: false, startDate: '', accessDuration: 6, lessons: [{ title: '', content: '', videoUrl: '', duration: '' }], quizzes: [{ question: '', options: ['', '', '', ''], correctAnswer: 0 }] });
+      setEditingCourse(null);
+      setView('manage');
+      fetchMyCourses();
+    } catch (err) { alert(err.response?.data?.message || 'Error saving course'); }
+  };
+
+  const handleEditCourse = (course) => {
+    setEditingCourse(course);
+    setCourseForm({
+      title: course.title,
+      description: course.description,
+      instructor: course.instructor || '',
+      category: course.category,
+      price: course.price,
+      originalPrice: course.originalPrice || '',
+      thumbnail: course.thumbnail || '',
+      isBatch: course.isBatch || false,
+      startDate: course.startDate ? course.startDate.split('T')[0] : '',
+      accessDuration: course.accessDuration || 6,
+      maxStudents: course.maxStudents || 50,
+      lessons: course.lessons.length > 0 ? course.lessons : [{ title: '', content: '', videoUrl: '', duration: '' }],
+      quizzes: course.quizzes.length > 0 ? course.quizzes : [{ question: '', options: ['', '', '', ''], correctAnswer: 0 }]
+    });
+    setView('create'); // Redirect to form
   };
 
   const handleUpdateEnquiryStatus = async (id, status) => {
@@ -441,15 +470,15 @@ const AdminDashboard = () => {
       {view === 'create' && (
         <form onSubmit={handleSubmitCourse} className="glass-card fade-in" style={{ padding: '50px', border: '1px solid var(--glass-border)' }}>
           <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '30px', marginBottom: '40px' }}>
-             <h2 style={{ fontSize: '1.8rem', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '15px' }}><Plus size={32} /> Draft New Course</h2>
+             <h2 style={{ fontSize: '1.8rem', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '15px' }}><Plus size={32} /> {editingCourse ? 'Update Curriculum' : 'Draft New Course'}</h2>
              <p style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>Define your course metadata and curriculum structure.</p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px', marginBottom: '24px' }}>
             <div><label style={{ display: 'block', marginBottom: '8px', fontWeight: '700' }}>Course Title</label><input className="input-field" placeholder="Course Title" value={courseForm.title} onChange={e => setCourseForm({ ...courseForm, title: e.target.value })} required /></div>
-            <div><label style={{ display: 'block', marginBottom: '8px', fontWeight: '700' }}>Price ($)</label><input className="input-field" type="number" placeholder="Price" value={courseForm.price} onChange={e => setCourseForm({ ...courseForm, price: e.target.value })} required /></div>
+            <div><label style={{ display: 'block', marginBottom: '8px', fontWeight: '700' }}>Price (₹)</label><input className="input-field" type="number" placeholder="Price" value={courseForm.price} onChange={e => setCourseForm({ ...courseForm, price: e.target.value })} required /></div>
             <div><label style={{ display: 'block', marginBottom: '8px', fontWeight: '700' }}>Category</label>
               <select className="input-field" value={courseForm.category} onChange={e => setCourseForm({ ...courseForm, category: e.target.value })}>
-                {['Web Development', 'Data Science', 'AI & Machine Learning', 'Cyber Security', 'Cloud Computing', 'Mobile Development', 'DevOps'].map(c => <option key={c}>{c}</option>)}
+                {['Web Development', 'Data Science', 'AI & Machine Learning', 'Cyber Security', 'Cloud Computing', 'Mobile Development', 'DevOps','Python', 'Full-Stack Developer', ''].map(c => <option key={c}>{c}</option>)}
               </select>
             </div>
             <div><label style={{ display: 'block', marginBottom: '8px', fontWeight: '700' }}>Thumbnail URL</label><input className="input-field" placeholder="Image URL" value={courseForm.thumbnail} onChange={e => setCourseForm({ ...courseForm, thumbnail: e.target.value })} required /></div>
@@ -461,9 +490,11 @@ const AdminDashboard = () => {
               Is this a Live Batch?
             </label>
             {courseForm.isBatch && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr) repeat(2, 1fr)', gap: '14px' }}>
                 <div><label style={{ display: 'block', fontSize: '0.82rem', marginBottom: '5px' }}>Start Date</label><input type="date" className="input-field" value={courseForm.startDate} onChange={e => setCourseForm({ ...courseForm, startDate: e.target.value })} required /></div>
-                <div><label style={{ display: 'block', fontSize: '0.82rem', marginBottom: '5px' }}>Old Price ($)</label><input type="number" className="input-field" value={courseForm.originalPrice} onChange={e => setCourseForm({ ...courseForm, originalPrice: e.target.value })} /></div>
+                <div><label style={{ display: 'block', fontSize: '0.82rem', marginBottom: '5px' }}>Access Duration (Mos)</label><input type="number" className="input-field" value={courseForm.accessDuration} onChange={e => setCourseForm({ ...courseForm, accessDuration: e.target.value })} required /></div>
+                <div><label style={{ display: 'block', fontSize: '0.82rem', marginBottom: '5px' }}>Batch Size (Max Seats)</label><input type="number" className="input-field" value={courseForm.maxStudents} onChange={e => setCourseForm({ ...courseForm, maxStudents: e.target.value })} required /></div>
+                <div><label style={{ display: 'block', fontSize: '0.82rem', marginBottom: '5px' }}>Old Price (₹)</label><input type="number" className="input-field" value={courseForm.originalPrice} onChange={e => setCourseForm({ ...courseForm, originalPrice: e.target.value })} /></div>
               </div>
             )}
           </div>
@@ -505,7 +536,7 @@ const AdminDashboard = () => {
             ))}
             <button type="button" onClick={addQuiz} className="btn" style={{ background: 'var(--bg-accent)' }}>+ Add Question</button>
           </div>
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '18px' }}><Save /> Create Course Structure</button>
+          <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '18px' }}><Save /> {editingCourse ? 'Update Curriculum' : 'Create Course Structure'}</button>
         </form>
       )}
 
@@ -518,7 +549,7 @@ const AdminDashboard = () => {
                 <BookOpen size={40} />
               </div>
               <h3 style={{ fontSize: '1.5rem', fontWeight: '800' }}>No Courses Yet</h3>
-              <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>Your academy is empty. Start by creating your first course structure.</p>
+              <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>Your library is empty. Start by creating your first course structure.</p>
               <button onClick={() => setView('create')} className="btn btn-primary" style={{ margin: '0 auto' }}><Plus size={16} /> New Course</button>
             </div>
           )}
@@ -538,12 +569,15 @@ const AdminDashboard = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                   <h3 onClick={() => navigate(`/courses/${c._id}`)} style={{ cursor: 'pointer', fontSize: '1.25rem', fontWeight: '900', color: 'var(--text-primary)', lineHeight: 1.2 }}>{c.title}</h3>
                   {isAdmin && (
-                    <button onClick={async () => { if (window.confirm('Delete this course?')) { await API.delete(`/courses/${c._id}`); fetchMyCourses(); } }} style={{ color: '#ef4444', background: 'rgba(239,68,68,0.1)', border: 'none', cursor: 'pointer', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Trash2 size={16} /></button>
+                    <div style={{ display: 'flex', gap: '5px' }}>
+                      <button title="Edit Details" onClick={() => handleEditCourse(c)} style={{ color: 'var(--accent-primary)', background: 'rgba(99,102,241,0.1)', border: 'none', cursor: 'pointer', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Edit3 size={16} /></button>
+                      <button title="Delete Course" onClick={async () => { if (window.confirm('Delete this course?')) { await API.delete(`/courses/${c._id}`); fetchMyCourses(); } }} style={{ color: '#ef4444', background: 'rgba(239,68,68,0.1)', border: 'none', cursor: 'pointer', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Trash2 size={16} /></button>
+                    </div>
                   )}
                 </div>
                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                   <span className="status-badge" style={{ background: 'var(--bg-accent)', color: 'var(--text-secondary)' }}>{c.category}</span>
-                  <span className="status-badge" style={{ background: 'var(--bg-accent)', color: 'var(--text-secondary)' }}>${c.price}</span>
+                  <span className="status-badge" style={{ background: 'var(--bg-accent)', color: 'var(--text-secondary)' }}>₹{c.price}</span>
                   <span className="status-badge" style={{ background: 'var(--bg-accent)', color: 'var(--text-secondary)' }}>{c.lessons.length} Modules</span>
                 </div>
               </div>

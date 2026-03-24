@@ -68,7 +68,10 @@ const Courses = () => {
                                     <span style={{ fontWeight: '800', color: 'var(--accent-primary)', fontSize: '1.2rem' }}>₹{course.price}</span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                    <h3 style={{ marginBottom: '10px', fontSize: '1.3rem', fontWeight: '700', flex: 1 }}>{course.title}</h3>
+                                    <div style={{ flex: 1 }}>
+                                        <h3 style={{ marginBottom: '8px', fontSize: '1.3rem', fontWeight: '700' }}>{course.title}</h3>
+                                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '12px', display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{course.description}</p>
+                                    </div>
                                     <button 
                                         onClick={(e) => {
                                             e.preventDefault();

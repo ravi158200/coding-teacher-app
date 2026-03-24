@@ -19,7 +19,7 @@ const HomeVariant2 = () => {
                             animate={{ opacity: 1, y: 0 }}
                             className="inline-flex items-center gap-2 px-3 py-1 bg-rose-50 text-rose-600 rounded-lg text-xs font-bold uppercase tracking-wider mb-8"
                         >
-                            <Trophy size={14} /> Top Rated Academy
+                            <Trophy size={14} /> Top Rated Courses
                         </motion.div>
 
                         <motion.h1 
