@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Video, MessageSquare, Download, Users, Send, Hand, X, Share2, Info } from 'lucide-react';
-import API from '../services/api';
+import API, { ASSET_URL } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 const Classroom = () => {
@@ -11,8 +11,8 @@ const Classroom = () => {
     const [classData, setClassData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [chatMessages, setChatMessages] = useState([
-        { id: 1, user: 'System', text: 'Welcome to the Live Classroom! Be respectful to everyone.', time: '10:00 AM' },
-        { id: 2, user: 'Instructor', text: 'Hello everyone! We will start in 5 minutes.', time: '10:01 AM' }
+        { id: 1, user: 'System', text: 'Welcome to the Live Classroom! Be respectful to everyone.', time: '10:00 AM', avatar: 'https://cdn-icons-png.flaticon.com/128/2919/2919380.png' },
+        { id: 2, user: 'Instructor', text: 'Hello everyone! We will start in 5 minutes.', time: '10:01 AM', avatar: 'https://cdn-icons-png.flaticon.com/128/1995/1995539.png' }
     ]);
     const [newMessage, setNewMessage] = useState('');
     const [activeTab, setActiveTab] = useState('chat');
@@ -48,6 +48,7 @@ const Classroom = () => {
             setChatMessages(prev => [...prev.slice(-15), { 
                 id: Date.now(), 
                 user: randomUser, 
+                avatar: `https://i.pravatar.cc/150?u=${randomUser}`,
                 text: randomMsg, 
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
             }]);
@@ -63,6 +64,7 @@ const Classroom = () => {
         setChatMessages(prev => [...prev, {
             id: Date.now(),
             user: user?.name || 'Guest User',
+            avatar: user?.avatar,
             text: newMessage,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }]);
@@ -72,7 +74,6 @@ const Classroom = () => {
     if (loading) return <div className="container section-padding" style={{ textAlign: 'center' }}><h2>Joining Classroom...</h2></div>;
     if (!classData) return <div className="container section-padding">Class not found.</div>;
 
-    const ASSET_URL = import.meta.env.VITE_ASSET_URL || 'http://localhost:5000/uploads/';
 
     return (
         <div style={{ background: '#0f172a', minHeight: '100vh', color: 'white', padding: '20px' }}>
@@ -173,13 +174,20 @@ const Classroom = () => {
                     <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
                         {activeTab === 'chat' ? (
                             chatMessages.map(msg => (
-                                <div key={msg.id} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <span style={{ fontWeight: '800', fontSize: '0.85rem', color: msg.user === 'Instructor' ? '#6366f1' : '#10b981' }}>{msg.user}</span>
-                                        <span style={{ fontSize: '0.7rem', opacity: 0.5 }}>{msg.time}</span>
-                                    </div>
-                                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '10px 14px', borderRadius: '12px', fontSize: '0.9rem', width: 'fit-content', maxWidth: '100%' }}>
-                                        {msg.text}
+                                <div key={msg.id} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                                    <img 
+                                        src={msg.avatar ? (msg.avatar.startsWith('http') ? msg.avatar : `${ASSET_URL}${msg.avatar}`) : "https://cdn-icons-png.flaticon.com/128/3177/3177440.png"} 
+                                        style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.1)' }} 
+                                        alt="av" 
+                                    />
+                                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <span style={{ fontWeight: '800', fontSize: '0.85rem', color: msg.user === 'Instructor' || msg.user === 'System' ? '#6366f1' : '#10b981' }}>{msg.user}</span>
+                                            <span style={{ fontSize: '0.7rem', opacity: 0.5 }}>{msg.time}</span>
+                                        </div>
+                                        <div style={{ background: 'rgba(255,255,255,0.05)', padding: '10px 14px', borderRadius: '12px', fontSize: '0.9rem', width: 'fit-content', maxWidth: '100%' }}>
+                                            {msg.text}
+                                        </div>
                                     </div>
                                 </div>
                             ))

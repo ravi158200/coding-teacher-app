@@ -108,12 +108,17 @@ const Quiz = () => {
                         <h1 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '15px' }}>Quiz Completed!</h1>
                         <p style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', marginBottom: '40px' }}>You scored {score} out of {course.quizzes.length}</p>
                         
-                        <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
-                            <button onClick={() => { setShowResult(false); setCurrentQuestion(0); setScore(0); }} className="btn" style={{ background: 'var(--bg-accent)', color: 'var(--text-primary)', padding: '16px 32px' }}>
-                                <RefreshCw size={20} /> Retake Quiz
+                        <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                            <button onClick={() => { setShowResult(false); setCurrentQuestion(0); setScore(0); }} className="btn" style={{ background: 'var(--bg-accent)', color: 'var(--text-primary)', padding: '16px 28px' }}>
+                                <RefreshCw size={18} /> Retake Quiz
                             </button>
-                            <button onClick={() => navigate(`/courses/${courseId}`)} className="btn btn-primary" style={{ padding: '16px 32px' }}>
-                                <ArrowLeft size={20} /> Back to Course
+                            
+                            <button onClick={() => navigate(`/certificate/${courseId}`)} className="btn" style={{ background: 'var(--success)', color: 'white', padding: '16px 28px', fontWeight: '700' }}>
+                                <Award size={18} /> Claim Certificate
+                            </button>
+
+                            <button onClick={() => navigate(`/courses/${courseId}`)} className="btn btn-primary" style={{ padding: '16px 28px' }}>
+                                <ArrowLeft size={18} /> Back to Course
                             </button>
                         </div>
                     </motion.div>

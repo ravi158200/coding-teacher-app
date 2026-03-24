@@ -374,7 +374,7 @@ const AdminDashboard = () => {
 
   // ─── RENDER ────────────────────────────────────────────────────────────────
   return (
-    <div className="bg-[#F4F6F9]" style={{ position: 'relative', minHeight: '100vh' }}>
+    <div className="bg-[var(--bg-primary)]" style={{ position: 'relative', minHeight: '100vh' }}>
       <DashboardStyles />
 
       <div className="container section-padding fade-in" style={{ paddingTop: '40px' }}>
@@ -681,7 +681,11 @@ const AdminDashboard = () => {
                     <tr key={u._id} style={{ borderBottom: '1px solid var(--border)' }}>
                       <td style={{ padding: '14px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <img src={u.avatar?.startsWith('http') ? u.avatar : `${ASSET_URL}${u.avatar}`} style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' }} alt={u.name} />
+                          <img 
+                            src={u.avatar ? (u.avatar.startsWith('http') ? u.avatar : `${ASSET_URL}${u.avatar}`) : "https://cdn-icons-png.flaticon.com/128/3177/3177440.png"} 
+                            style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border)' }} 
+                            alt={u.name} 
+                          />
                           <span style={{ fontWeight: '700' }}>{u.name}</span>
                         </div>
                       </td>

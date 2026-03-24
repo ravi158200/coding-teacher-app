@@ -5,10 +5,10 @@ import { Link } from 'react-router-dom';
 
 const HomeVariant1 = () => {
     return (
-        <div className="bg-[#F4F6F9] min-h-screen text-slate-800 overflow-hidden relative">
+        <div className="bg-[var(--bg-primary)] min-h-screen text-slate-800 overflow-hidden relative">
             {/* Ambient Background with Full HD Photo */}
             <div className="absolute inset-0 w-full h-full z-0 overflow-hidden pointer-events-none">
-                <div className="absolute inset-0 bg-[#F4F6F9]/85 z-10" />
+                <div className="absolute inset-0 bg-[var(--bg-primary)]/85 z-10" />
                 <img 
                     src="https://images.unsplash.com/photo-1573164713988-8665fc963095?q=80&w=3840&auto=format&fit=crop" 
                     alt="Coding Environment" 

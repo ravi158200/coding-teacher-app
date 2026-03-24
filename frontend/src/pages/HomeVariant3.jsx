@@ -9,7 +9,7 @@ const HomeVariant3 = () => {
     const y2 = useTransform(scrollY, [0, 1000], [0, 150]);
 
     return (
-        <div className="bg-[#F4F6F9] min-h-screen text-slate-800 overflow-hidden font-sans">
+        <div className="bg-[var(--bg-primary)] min-h-screen text-slate-800 overflow-hidden font-sans">
             {/* Full HD Photo Background Elements */}
             <div className="fixed inset-0 pointer-events-none z-0">
                 <img 
@@ -17,7 +17,7 @@ const HomeVariant3 = () => {
                     alt="Developer Desktop" 
                     className="absolute inset-0 w-full h-full object-cover opacity-60"
                 />
-                <div className="absolute inset-0 bg-[#F4F6F9]/70 backdrop-blur-md" />
+                <div className="absolute inset-0 bg-[var(--bg-primary)]/70 backdrop-blur-md" />
                 <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-pink-300/40 rounded-full blur-[100px] mix-blend-multiply" />
                 <div className="absolute top-[20%] right-[-10%] w-[40%] h-[60%] bg-blue-300/40 rounded-full blur-[100px] mix-blend-multiply" />
                 <div className="absolute bottom-[-20%] left-[20%] w-[60%] h-[40%] bg-amber-200/40 rounded-full blur-[100px] mix-blend-multiply" />

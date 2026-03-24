@@ -31,7 +31,7 @@ const Courses = () => {
     );
 
     return (
-        <div className="w-full min-h-screen bg-[#F4F6F9]">
+        <div className="w-full min-h-screen bg-[var(--bg-primary)]">
             <div className="container section-padding fade-in">
                 <div style={{ marginBottom: '60px', textAlign: 'center' }}>
                 <h1 style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '20px' }}>Explore Courses</h1>

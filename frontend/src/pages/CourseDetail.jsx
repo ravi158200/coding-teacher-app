@@ -49,7 +49,7 @@ const CourseDetail = () => {
     if (!course) return <div className="container section-padding">Loading...</div>;
 
     return (
-        <div className="bg-[#F4F6F9]" style={{ minHeight: '100vh' }}>
+        <div className="bg-[var(--bg-primary)]" style={{ minHeight: '100vh' }}>
             <div className="container section-padding fade-in">
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '50px' }}>
                 {/* Left Column */}
@@ -136,11 +136,22 @@ const CourseDetail = () => {
                             )}
 
                             {isEnrolled || isAdmin ? (
-                                <Link to={`/lessons/${course._id}/0`} style={{ textDecoration: 'none' }}>
-                                    <button className="btn btn-primary" style={{ width: '100%', padding: '16px', marginBottom: '15px', background: isAdmin ? 'var(--accent-primary)' : 'var(--success)' }}>
-                                        {isAdmin ? 'View Curriculum' : (course.isBatch ? 'Joined Batch Class' : 'Continue Learning')} <ArrowRight size={20} />
-                                    </button>
-                                </Link>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    <Link to={`/lessons/${id}/0`} style={{ textDecoration: 'none' }}>
+                                        <button className="btn btn-primary" style={{ width: '100%', padding: '16px', background: isAdmin ? 'var(--accent-primary)' : 'var(--success)' }}>
+                                            {isAdmin ? 'View Curriculum' : (course.isBatch ? 'Joined Batch Class' : 'Continue Learning')} <ArrowRight size={20} />
+                                        </button>
+                                    </Link>
+                                    
+                                    {/* Final Exam Access */}
+                                    {course.quizzes && course.quizzes.length > 0 && (
+                                        <Link to={`/quiz/${id}`} style={{ textDecoration: 'none' }}>
+                                            <button className="btn" style={{ width: '100%', padding: '16px', border: '1px solid var(--accent-primary)', background: 'rgba(99, 102, 241, 0.05)', color: 'var(--accent-primary)', fontWeight: '700' }}>
+                                                <Award size={20} /> Start Final Exam
+                                            </button>
+                                        </Link>
+                                    )}
+                                </div>
                             ) : (
                                 <button onClick={handleEnroll} className="btn btn-primary" style={{ width: '100%', padding: '16px', marginBottom: '15px' }}>
                                     {course.isBatch ? `Pre-Enroll in Batch (₹{course.price})` : `Enroll Now (₹{course.price})`} <ArrowRight size={20} />
@@ -167,6 +178,25 @@ const CourseDetail = () => {
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
                                     <Award size={18} /> Certificate of completion
+                                </div>
+                            </div>
+
+                            {/* Batch Student Gallery */}
+                            <div style={{ marginTop: '30px', padding: '20px', background: 'var(--bg-accent)', borderRadius: '16px', border: '1px solid var(--border)' }}>
+                                <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>Joined this Batch</p>
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    {[1, 2, 3, 4, 5].map(i => (
+                                        <img 
+                                            key={i} 
+                                            src={`https://i.pravatar.cc/150?u=${i + 10}`} 
+                                            style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid #fff', marginLeft: i === 1 ? 0 : '-12px', objectFit: 'cover' }} 
+                                            alt="student"
+                                        />
+                                    ))}
+                                    <div style={{ marginLeft: '12px' }}>
+                                        <p style={{ fontSize: '0.85rem', fontWeight: '800', lineHeight: '1' }}>480+ Students</p>
+                                        <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '2px' }}>Already enrolled</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>

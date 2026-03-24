@@ -35,7 +35,7 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <Router>
-          <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col transition-colors duration-500 relative">
+          <div className="min-h-screen bg-[var(--bg-primary)] dark:bg-slate-950 flex flex-col transition-colors duration-500 relative">
             {/* Ambient Background Glows */}
             <div className="fixed top-[-20%] left-[-10%] w-[500px] h-[500px] bg-indigo-500/30 dark:bg-indigo-600/20 rounded-full blur-[140px] pointer-events-none z-0 animate-pulse" style={{ animationDuration: '8s' }}></div>
             <div className="fixed bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-cyan-500/20 dark:bg-cyan-600/15 rounded-full blur-[150px] pointer-events-none z-0 animate-pulse" style={{ animationDuration: '12s' }}></div>
@@ -68,7 +68,7 @@ function App() {
               <FloatingAdminBtn />
             </main>
 
-            <footer className="bg-[#F4F6F9] dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 pt-[140px] pb-24 px-6 md:px-12 lg:px-20 transition-colors duration-600">
+            <footer className="bg-[var(--bg-primary)] dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 pt-[140px] pb-24 px-6 md:px-12 lg:px-20 transition-colors duration-600">
               <div className="w-full max-w-[1600px] mx-auto">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-y-16 gap-x-10 lg:gap-20 mb-24">
                   {/* Brand Column */}

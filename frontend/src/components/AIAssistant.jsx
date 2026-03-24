@@ -1,9 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, X, Send, Bot, User, Code2, Sparkles, Loader2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { ASSET_URL } from '../services/api';
 // Note: If react-markdown is not installed, we will just render standard text.
 
 const AIAssistant = () => {
+    const { user } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
         { role: 'assistant', content: 'Hi there! I am your AI Coding Assistant. Feel free to ask me any programming questions or paste your code for debugging.' }
@@ -120,10 +123,18 @@ const AIAssistant = () => {
                                 >
                                     {/* Avatar */}
                                     <div className={`
-                                        w-8 h-8 rounded-full flex items-center justify-center shrink-0
+                                        w-8 h-8 rounded-full flex items-center justify-center shrink-0 overflow-hidden
                                         ${msg.role === 'user' ? 'bg-indigo-100 text-indigo-600' : 'bg-gradient-to-br from-indigo-500 to-cyan-500 text-white'}
                                     `}>
-                                        {msg.role === 'user' ? <User size={16} /> : <Bot size={16} />}
+                                        {msg.role === 'user' ? (
+                                            user?.avatar ? (
+                                                <img 
+                                                    src={user.avatar.startsWith('http') ? user.avatar : `${ASSET_URL}${user.avatar}`} 
+                                                    className="w-full h-full object-cover" 
+                                                    alt="user" 
+                                                />
+                                            ) : <User size={16} />
+                                        ) : <Bot size={16} />}
                                     </div>
 
                                     {/* Message Bubble */}

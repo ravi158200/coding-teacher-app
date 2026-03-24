@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { ASSET_URL } from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sun, Moon, Search, LogOut, Code2, Shield, Layout, Bell, User as UserIcon, Menu, X } from 'lucide-react';
+import { Sun, Moon, Search, LogOut, Code2, Shield, Layout, Bell, User as UserIcon, Menu, X, ChevronDown } from 'lucide-react';
 
 const Navbar = () => {
     const { user, logout } = useAuth();
@@ -104,16 +104,19 @@ const Navbar = () => {
                         ? 'bg-slate-800/80 border-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.2)] min-w-[300px]' 
                         : 'bg-slate-800/40 border-slate-600 hover:border-slate-500 w-64'}
                 `}>
-                    <select 
-                        value={searchCategory}
-                        onChange={(e) => setSearchCategory(e.target.value)}
-                        className="bg-transparent border-none outline-none text-xs font-bold text-slate-400 cursor-pointer appearance-none uppercase tracking-wide"
-                    >
-                        <option value="all" className="bg-slate-800 text-white">All</option>
-                        <option value="content" className="bg-slate-800 text-white">Insights</option>
-                        <option value="ai" className="bg-slate-800 text-cyan-400">Ask AI 🤖</option>
-                        <option value="courses" className="bg-slate-800 text-white">Courses</option>
-                    </select>
+                    <div className="relative flex items-center group">
+                        <select 
+                            value={searchCategory}
+                            onChange={(e) => setSearchCategory(e.target.value)}
+                            className="bg-transparent border-none outline-none text-[10px] font-black text-slate-400 cursor-pointer appearance-none uppercase tracking-widest transition-colors hover:text-white pr-4"
+                        >
+                            <option value="all" className="bg-slate-900 text-white font-bold">ALL</option>
+                            <option value="content" className="bg-slate-900 text-white font-bold">INSIGHTS</option>
+                            <option value="ai" className="bg-slate-900 text-cyan-400 font-bold">ASK AI</option>
+                            <option value="courses" className="bg-slate-900 text-white font-bold">COURSES</option>
+                        </select>
+                        <ChevronDown size={12} className="absolute right-0 text-slate-500 pointer-events-none group-hover:text-cyan-400 transition-colors" />
+                    </div>
                     <div className="w-[1px] h-4 bg-slate-600 mx-1 shrink-0" />
                     <input 
                         type="text" 
@@ -159,7 +162,7 @@ const Navbar = () => {
                             <Link to="/profile" className="flex items-center gap-3 pl-2 transition-transform hover:scale-105">
                                 <div className="relative">
                                     <img 
-                                        src={user.avatar?.startsWith('http') ? user.avatar : `${ASSET_URL}${user.avatar}`} 
+                                        src={user.avatar ? (user.avatar.startsWith('http') ? user.avatar : `${ASSET_URL}${user.avatar}`) : "https://cdn-icons-png.flaticon.com/128/3177/3177440.png"} 
                                         className="w-10 h-10 rounded-xl object-cover border-2 border-indigo-600/20 shadow-lg"
                                         alt="avatar" 
                                     />

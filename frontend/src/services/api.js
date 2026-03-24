@@ -13,6 +13,6 @@ API.interceptors.request.use((req) => {
     return req;
 });
 
-export const ASSET_URL = (API.defaults.baseURL || '').replace('/api', '');
+export const ASSET_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5003/api').replace('/api', '') + '/uploads/';
 
 export default API;

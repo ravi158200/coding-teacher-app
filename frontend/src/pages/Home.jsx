@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
-import { ChevronRight, Play, Users, Star, GraduationCap, Code, TrendingUp, Heart, Award, ShieldCheck } from 'lucide-react';
+import { ChevronRight, Play, Users, Star, GraduationCap, Code, TrendingUp, Heart, Award, ShieldCheck, ArrowRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -61,7 +61,7 @@ const Home = () => {
     ];
 
     return (
-        <div className="bg-[#F4F6F9] min-h-screen fade-in">
+        <div className="bg-[var(--bg-primary)] min-h-screen fade-in">
             {/* Mesh background removed to show clean #F4F6F9 background */}
 
             
@@ -322,29 +322,49 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* Community Section */}
-            <section className="section-padding">
+
+
+            {/* Student Feedback (Testimonials) Section */}
+            <section className="section-padding" style={{ padding: '100px 0', background: 'var(--bg-accent)', borderBottom: '1px solid var(--border)' }}>
                 <div className="container">
                     <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-                        <h2 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '16px' }}>Join a Global Community</h2>
-                        <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto' }}>Connect with passionate developers from around the world. Our cohorts are more than just classes—they are lifelong networks.</p>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'var(--bg-primary)', padding: '6px 16px', borderRadius: '30px', color: '#f59e0b', fontWeight: '800', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '20px', border: '1px solid var(--border)' }}>
+                             <Star size={16} fill="#f59e0b" /> Student Reviews
+                        </div>
+                        <h2 style={{ fontSize: '3rem', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '15px' }}>Trusted by <span style={{ color: 'var(--accent-primary)' }}>Engineers</span> Alike</h2>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', maxWidth: '750px', margin: '0 auto' }}>Hear from our alumni who have successfully transitioned into high-growth engineering roles.</p>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
-                        <div className="glass-card" style={{ padding: '0', overflow: 'hidden', borderRadius: '32px', position: 'relative' }}>
-                            <img src="/batch2.png" style={{ width: '100%', height: '400px', objectFit: 'cover' }} alt="Batch 2 Preview" />
-                            <div style={{ position: 'absolute', bottom: '0', left: '0', right: '0', padding: '40px', background: 'linear-gradient(to top, rgba(0,0,0,0.95), transparent)', color: 'white' }}>
-                                <h4 style={{ fontSize: '1.8rem', fontWeight: '800', marginBottom: '5px' }}>Cloud Architecture Labs</h4>
-                                <p style={{ opacity: 0.8, fontSize: '1.1rem' }}>Next Session May 2026 • Live Project Building</p>
+                    <div className="grid-courses">
+                        {[
+                            { name: 'Arjun Verma', feedback: 'The live mentorship sessions are a game changer. Building a real-world app from scratch gave me the confidence I needed for my interviews.', img: 'https://cdn-icons-png.flaticon.com/128/3177/3177440.png', role: 'SDE-1 @ TechFlow' },
+                            { name: 'Sneha Kapur', feedback: 'Detailed, project-oriented, and extremely hands-on. The AI Assistant helped me debug my code even late at night! Highly recommended.', img: 'https://cdn-icons-png.flaticon.com/128/1995/1995539.png', role: 'Frontend Engineer' },
+                            { name: 'Rahul Shinde', feedback: "Best investment in my career. The certification was recognized during my last technical round. Vipul Sir's way of teaching is unmatched.", img: 'https://cdn-icons-png.flaticon.com/128/1995/1995574.png', role: 'Full Stack Dev' }
+                        ].map((review, i) => (
+                            <div key={i} className="glass-card fade-in" style={{ padding: '40px', display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border)' }}>
+                                <div style={{ display: 'flex', gap: '4px', color: '#f59e0b', marginBottom: '20px' }}>
+                                    {[1, 2, 3, 4, 5].map(star => <Star key={star} size={18} fill="#f59e0b" />)}
+                                </div>
+                                <p style={{ fontSize: '1.2rem', color: 'var(--text-primary)', fontWeight: '600', lineHeight: '1.6', marginBottom: '30px', flex: 1, fontStyle: 'italic' }}>"{review.feedback}"</p>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                    <img src={review.img} style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--bg-accent)' }} alt="student" />
+                                    <div>
+                                        <h4 style={{ fontSize: '1rem', fontWeight: '800' }}>{review.name}</h4>
+                                        <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{review.role}</p>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div className="glass-card" style={{ padding: '0', overflow: 'hidden', borderRadius: '32px', position: 'relative' }}>
-                            <img src="/batch3.png" style={{ width: '100%', height: '400px', objectFit: 'cover' }} alt="Batch 3 Preview" />
-                            <div style={{ position: 'absolute', bottom: '0', left: '0', right: '0', padding: '40px', background: 'linear-gradient(to top, rgba(0,0,0,0.95), transparent)', color: 'white' }}>
-                                <h4 style={{ fontSize: '1.8rem', fontWeight: '800', marginBottom: '5px' }}>AI & ML Research Group</h4>
-                                <p style={{ opacity: 0.8, fontSize: '1.1rem' }}>Summer 2026 Residency • Elite Mentorship</p>
-                            </div>
-                        </div>
+                        ))}
+                    </div>
+
+                    <div style={{ textAlign: 'center', marginTop: '60px' }}>
+                        <button 
+                            className="btn btn-primary" 
+                            style={{ padding: '16px 32px' }}
+                            onClick={() => alert("Redirecting to all reviews...")}
+                        >
+                            Read all 480+ student reviews <ArrowRight size={18} />
+                        </button>
                     </div>
                 </div>
             </section>

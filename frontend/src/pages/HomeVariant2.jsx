@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 
 const HomeVariant2 = () => {
     return (
-        <div className="bg-[#F4F6F9] min-h-screen text-slate-800 font-sans selection:bg-rose-500/20 selection:text-rose-900">
+        <div className="bg-[var(--bg-primary)] min-h-screen text-slate-800 font-sans selection:bg-rose-500/20 selection:text-rose-900">
             {/* Minimal Header Spacer */}
             <div className="h-32 bg-transparent" />
 

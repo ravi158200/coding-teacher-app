@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import API, { ASSET_URL } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
-import { GraduationCap, BookOpen, Clock, Heart, Award, ArrowRight, Video, User as UserIcon, Briefcase, Mail, Phone, Github, Linkedin, Twitter, Save, Edit3, X, CheckCircle, Star, Loader2 } from 'lucide-react';
+import { GraduationCap, BookOpen, Clock, Heart, Award, ArrowRight, Video, User as UserIcon, Briefcase, Mail, Phone, Github, Linkedin, Twitter, Save, Edit3, X, CheckCircle, Star, Loader2, Image as ImageIcon } from 'lucide-react';
 
 const Profile = () => {
     const { user, token, updateProfile, toggleFavorite, setUser } = useAuth();
@@ -12,6 +12,7 @@ const Profile = () => {
     const [editData, setEditData] = useState({});
     const [saveLoading, setSaveLoading] = useState(false);
     const [avatarLoading, setAvatarLoading] = useState(false);
+    const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
     const [upcomingClasses, setUpcomingClasses] = useState([]);
     const [feedback, setFeedback] = useState({ rating: 5, message: '' });
     const [feedbackSent, setFeedbackSent] = useState(false);
@@ -73,6 +74,33 @@ const Profile = () => {
         }
     };
 
+    const presetAvatars = [
+        "https://cdn-icons-png.flaticon.com/128/3177/3177440.png",
+        "https://cdn-icons-png.flaticon.com/128/1995/1995539.png",
+        "https://cdn-icons-png.flaticon.com/128/1995/1995574.png",
+        "https://cdn-icons-png.flaticon.com/128/4140/4140047.png",
+        "https://cdn-icons-png.flaticon.com/128/4140/4140037.png",
+        "https://cdn-icons-png.flaticon.com/128/4140/4140051.png",
+        "https://cdn-icons-png.flaticon.com/128/4333/4333588.png",
+        "https://cdn-icons-png.flaticon.com/128/4333/4333609.png"
+    ];
+
+    const handleAvatarSelect = async (url) => {
+        setAvatarLoading(true);
+        try {
+            await API.put('/users/profile', { avatar: url });
+            setProfileData(prev => ({ ...prev, avatar: url }));
+            const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+            const updatedUserInfo = { ...userInfo, avatar: url };
+            localStorage.setItem('userInfo', JSON.stringify(updatedUserInfo));
+            setUser(updatedUserInfo);
+        } catch (error) {
+            alert('Failed to update avatar');
+        } finally {
+            setAvatarLoading(false);
+        }
+    };
+
     const handleFeedbackSubmit = (e) => {
         e.preventDefault();
         // Mock feedback submission
@@ -113,42 +141,56 @@ const Profile = () => {
     const enrolledBatches = profileData.enrolledCourses?.filter(c => c.isBatch) || [];
 
     return (
-        <div className="bg-[#F4F6F9] min-h-screen w-full">
+        <div className="bg-[var(--bg-primary)] min-h-screen w-full">
         <div className="container section-padding fade-in">
             {/* Header Section */}
-            <div className="glass-card" style={{ padding: '50px', marginBottom: '40px', textAlign: 'center', position: 'relative' }}>
-                <button 
-                    onClick={() => setIsEditing(!isEditing)}
-                    style={{ position: 'absolute', top: '20px', right: '20px', background: 'var(--bg-accent)', border: 'none', padding: '10px 20px', borderRadius: '12px', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600' }}
-                >
-                    {isEditing ? <><X size={18} /> Cancel</> : <><Edit3 size={18} /> Edit Profile</>}
-                </button>
-
-                <div style={{ position: 'relative', width: '120px', height: '120px', margin: '0 auto 20px', cursor: 'pointer' }} className="avatar-container">
-                    <label style={{ cursor: 'pointer' }}>
-                        <img 
-                            src={profileData.avatar.startsWith('http') ? profileData.avatar : `${ASSET_URL}${profileData.avatar}`} 
-                            style={{ width: '120px', height: '120px', borderRadius: '50%', border: '4px solid var(--accent-primary)', objectFit: 'cover', opacity: avatarLoading ? 0.5 : 1 }} 
-                            alt="avatar" 
-                        />
-                        <div className="avatar-overlay" style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', opacity: 0, transition: 'opacity 0.3s' }}>
-                            {avatarLoading ? <Loader2 className="spin" /> : <Edit3 size={20} />}
-                        </div>
-                        <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleAvatarUpload(e.target.files[0])} disabled={avatarLoading} />
-                    </label>
+            <div className="glass-card" style={{ padding: '0', marginBottom: '40px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+                {/* Cover Image Background */}
+                <div style={{ height: '180px', background: 'linear-gradient(135deg, #6366f1, #a855f7)', width: '100%', position: 'relative' }}>
+                    <img 
+                        src="https://images.unsplash.com/photo-1542831371-29b0f74f9713?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.3, mixBlendMode: 'overlay' }} 
+                        alt="cover"
+                    />
+                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent, var(--bg-primary))' }} />
                 </div>
 
-                <style>{`
-                    .avatar-container:hover .avatar-overlay { opacity: 1 !important; }
-                `}</style>
-                <h1 style={{ fontSize: '2.5rem', fontWeight: '800' }}>{profileData.name}</h1>
-                <p style={{ color: 'var(--text-secondary)', marginBottom: '15px' }}>Coding Classes Engineering Fellow • {profileData.role.toUpperCase()}</p>
-                
-                {profileData.occupation && (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', color: 'var(--accent-primary)', fontWeight: '700' }}>
-                        <Briefcase size={18} /> {profileData.occupation}
+                <div style={{ marginTop: '-60px', position: 'relative', zIndex: 10 }}>
+                    <div 
+                        style={{ position: 'relative', width: '140px', height: '140px', margin: '0 auto 20px', cursor: 'pointer', transition: 'transform 0.3s' }} 
+                        className="avatar-container"
+                        onClick={() => setIsAvatarModalOpen(true)}
+                        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                    >
+                        <img 
+                            src={profileData.avatar ? (profileData.avatar.startsWith('http') ? profileData.avatar : `${ASSET_URL}${profileData.avatar}`) : "https://cdn-icons-png.flaticon.com/128/3177/3177440.png"} 
+                            style={{ width: '140px', height: '140px', borderRadius: '50%', border: '6px solid var(--bg-primary)', objectFit: 'cover', background: 'var(--bg-primary)', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }} 
+                            alt="avatar" 
+                        />
+                        <div className="avatar-overlay" style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', opacity: 0, transition: 'opacity 0.3s' }}>
+                            <Edit3 size={24} />
+                        </div>
                     </div>
-                )}
+                    
+                    <button 
+                        onClick={() => setIsEditing(!isEditing)}
+                        style={{ position: 'absolute', top: '-10px', right: '30px', background: 'var(--bg-accent)', border: '1px solid var(--border)', padding: '10px 20px', borderRadius: '12px', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '800', fontSize: '0.85rem' }}
+                    >
+                        {isEditing ? <><X size={18} /> Cancel</> : <><Edit3 size={18} /> Edit Profile</>}
+                    </button>
+                </div>
+
+                <div style={{ padding: '0 40px 40px' }}>
+                    <h1 style={{ fontSize: '2.8rem', fontWeight: '900', color: 'var(--text-primary)', letterSpacing: '-1px' }}>{profileData.name}</h1>
+                    <p style={{ color: 'var(--accent-primary)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.8rem', marginBottom: '20px' }}>Coding Classes Engineering Fellow • {profileData.role.toUpperCase()}</p>
+                    
+                    {profileData.occupation && (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', color: 'var(--text-secondary)', fontWeight: '700' }}>
+                            <Briefcase size={18} /> {profileData.occupation}
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Main Content Grid */}
@@ -460,6 +502,54 @@ const Profile = () => {
                 </>
             )}
         </div>
+            {/* Avatar Selection Modal */}
+            {isAvatarModalOpen && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => setIsAvatarModalOpen(false)}>
+                    <div 
+                        className="glass-card fade-in" 
+                        style={{ maxWidth: '600px', width: '100%', padding: '40px', background: 'var(--bg-primary)', position: 'relative' }}
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <button style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => setIsAvatarModalOpen(false)}><X /></button>
+                        <h2 style={{ fontSize: '1.8rem', fontWeight: '900', marginBottom: '10px' }}>Choose Profile Picture</h2>
+                        <p style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>Select a professional fellow avatar or upload your own creative profile image.</p>
+                        
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '15px', marginBottom: '30px' }}>
+                            {presetAvatars.map((url, i) => (
+                                <div 
+                                    key={i} 
+                                    onClick={() => { handleAvatarSelect(url); setIsAvatarModalOpen(false); }}
+                                    style={{ 
+                                        aspectRatio: '1/1', 
+                                        borderRadius: '20px', 
+                                        border: (profileData.avatar === url) ? '3px solid var(--accent-primary)' : '1px solid var(--border)',
+                                        cursor: 'pointer',
+                                        overflow: 'hidden',
+                                        transition: 'all 0.2s',
+                                        background: 'var(--bg-accent)',
+                                        padding: '5px'
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-primary)'}
+                                    onMouseLeave={e => e.currentTarget.style.borderColor = (profileData.avatar === url) ? 'var(--accent-primary)' : 'var(--border)'}
+                                >
+                                    <img src={url} style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt="avatar-option" />
+                                </div>
+                            ))}
+                        </div>
+
+                        <div style={{ borderTop: '1px solid var(--border)', paddingTop: '25px', display: 'flex', gap: '15px', alignItems: 'center' }}>
+                            <div style={{ flex: 1 }}>
+                                <p style={{ fontWeight: '800', fontSize: '0.9rem' }}>Upload Personal Photo</p>
+                                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Max file size 2MB</p>
+                            </div>
+                            <label className="btn btn-primary" style={{ padding: '12px 24px', cursor: 'pointer' }}>
+                                <ImageIcon size={18} /> Choose File
+                                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { handleAvatarUpload(e.target.files[0]); setIsAvatarModalOpen(false); }} />
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

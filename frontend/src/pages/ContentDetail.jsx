@@ -62,7 +62,7 @@ const ContentDetail = () => {
                     
                     <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                         <img 
-                            src={item.author?.avatar?.startsWith('http') ? item.author.avatar : `${ASSET_URL}${item.author?.avatar}`} 
+                            src={item.author?.avatar ? (item.author.avatar.startsWith('http') ? item.author.avatar : `${ASSET_URL}${item.author.avatar}`) : "https://cdn-icons-png.flaticon.com/128/3177/3177440.png"} 
                             style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--accent-primary)' }} 
                             alt={item.authorName} 
                         />

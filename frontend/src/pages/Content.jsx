@@ -44,7 +44,7 @@ const Content = () => {
   const rest = filtered.filter(i => !i.isPinned);
 
   return (
-    <div className="w-full min-h-screen bg-[#F4F6F9]">
+    <div className="w-full min-h-screen bg-[var(--bg-primary)]">
       <div className="container section-padding fade-in">
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: '50px' }}>
