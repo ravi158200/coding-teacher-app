@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { ASSET_URL } from '../services/api';
+import { ASSET_URL, formatAssetUrl } from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sun, Moon, Search, LogOut, Code2, Shield, Layout, Bell, User as UserIcon, Menu, X, ChevronDown, GraduationCap, BookOpen } from 'lucide-react';
 
@@ -139,18 +139,8 @@ const Navbar = () => {
                                 >
                                     <div className="relative">
                                         <img 
-                                            src={(() => {
-                                                if (!user.avatar) return "https://cdn-icons-png.flaticon.com/128/3177/3177440.png";
-                                                let url = user.avatar;
-                                                if (url.includes('drive.google.com')) {
-                                                    const id = url.split('/d/')[1]?.split('/')[0] || url.split('id=')[1]?.split('&')[0];
-                                                    if (id) return `https://lh3.googleusercontent.com/d/${id}`;
-                                                }
-                                                if (url.startsWith('http')) return url;
-                                                const cleanPath = url.replace(/^\/?uploads\/?/, '');
-                                                return `${ASSET_URL}${cleanPath}`;
-                                            })()} 
-                                            className="w-10 h-10 rounded-xl object-cover border-2 border-indigo-600/20 shadow-lg group-hover:border-indigo-500/50 transition-colors"
+                                             src={formatAssetUrl(user.avatar) || "https://cdn-icons-png.flaticon.com/128/3177/3177440.png"} 
+                                             className="w-10 h-10 rounded-xl object-cover border-2 border-indigo-600/20 shadow-lg group-hover:border-indigo-500/50 transition-colors"
                                             alt="avatar" 
                                         />
                                         <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-slate-900 rounded-full" />

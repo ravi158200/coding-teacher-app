@@ -45,9 +45,7 @@ function App() {
       <AuthProvider>
         <Router>
           <div className="min-h-screen bg-[var(--bg-primary)] dark:bg-slate-950 flex flex-col transition-colors duration-500 relative">
-            {/* Ambient Background Glows */}
-            <div className="fixed top-[-20%] left-[-10%] w-[500px] h-[500px] bg-indigo-500/30 dark:bg-indigo-600/20 rounded-full blur-[140px] pointer-events-none z-0 animate-pulse" style={{ animationDuration: '8s' }}></div>
-            <div className="fixed bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-cyan-500/20 dark:bg-cyan-600/15 rounded-full blur-[150px] pointer-events-none z-0 animate-pulse" style={{ animationDuration: '12s' }}></div>
+            {/* Clean Background Layout */}
             
             <div className="relative z-10 flex flex-col flex-grow w-full">
             <Navbar />
@@ -78,17 +76,17 @@ function App() {
               <FloatingAdminBtn />
             </main>
 
-            <footer className="bg-[var(--bg-primary)] dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 pt-[140px] pb-24 px-6 md:px-12 lg:px-20 transition-colors duration-600">
-              <div className="w-full max-w-[1600px] mx-auto">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-y-16 gap-x-10 lg:gap-20 mb-24">
+            <footer className="bg-[var(--bg-primary)] dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 pt-40 pb-24 px-6 md:px-12 lg:px-20 transition-colors duration-600">
+              <div className="w-full max-w-[1900px] mx-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-y-20 gap-x-12 lg:gap-32 mb-24">
                   {/* Brand Column */}
-                  <div className="space-y-10">
+                  <div className="space-y-10 lg:col-span-2">
                     <Link to="/" className="flex items-center gap-3">
                       <div className="bg-gradient-to-br from-indigo-500 to-cyan-400 p-2 rounded-xl text-white shadow-lg">
                         <Code2 size={24} />
                       </div>
                       <span 
-                        className="text-[2rem] leading-none font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-500 to-indigo-500 pb-1"
+                        className="text-[2.2rem] leading-none font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-500 to-indigo-500 pb-1 whitespace-nowrap"
                         style={{ fontFamily: "'Dancing Script', cursive" }}
                       >
                         Coding Classes
@@ -137,7 +135,7 @@ function App() {
                   </div>
 
                   {/* Contact Column */}
-                  <div>
+                  <div className="lg:col-span-2">
                     <h4 className="text-slate-800 dark:text-white font-bold mb-10">Contact</h4>
                     <ul className="space-y-8 text-sm text-slate-500 dark:text-slate-400">
                       <li className="flex items-start gap-3">
@@ -157,11 +155,11 @@ function App() {
 
                 </div>
 
-                <div className="pt-16 mt-8 border-t border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center gap-6 text-sm font-medium text-slate-400 text-center">
-                  <p>© 2026 Coding Classes. All rights reserved.</p>
-                  <div className="flex gap-8">
-                    <Link to="/privacy" className="hover:text-indigo-600 transition-colors">Privacy Policy</Link>
-                    <Link to="/terms" className="hover:text-indigo-600 transition-colors">Terms of Service</Link>
+                <div className="pt-16 mt-12 border-t border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center gap-6 text-sm font-medium text-slate-400 text-center">
+                  <p className="text-base">© 2026 Coding Classes. All rights reserved.</p>
+                  <div className="flex gap-12">
+                    <Link to="/privacy" className="hover:text-indigo-600 transition-colors text-base">Privacy Policy</Link>
+                    <Link to="/terms" className="hover:text-indigo-600 transition-colors text-base">Terms of Service</Link>
                   </div>
                 </div>
               </div>

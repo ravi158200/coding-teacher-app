@@ -17,12 +17,13 @@ const app = express();
 // Allow requests from Vercel frontend and localhost
 const allowedOrigins = [
     'http://localhost:5173',
+    'http://localhost:5174',
     'http://localhost:3000',
     /\.vercel\.app$/,
 ];
 app.use(cors({
     origin: (origin, callback) => {
-        if (!origin) return callback(null, true); // allow non-browser requests (Postman, Render health checks)
+        if (!origin) return callback(null, true);
         const isAllowed = allowedOrigins.some(o =>
             typeof o === 'string' ? o === origin : o.test(origin)
         );

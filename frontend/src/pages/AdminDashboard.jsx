@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
-import API, { ASSET_URL } from '../services/api';
+import API, { ASSET_URL, formatAssetUrl } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import {
   Layout, Plus, Trash2, Video, FileText, HelpCircle, Save, Check,
@@ -415,24 +415,36 @@ const AdminDashboard = () => {
           gap: '30px', 
           marginBottom: '50px' 
         }}>
-          <div style={{ 
-            background: 'linear-gradient(135deg, var(--accent-primary) 0%, #4338ca 100%)',
+          <div className="glass-card shadow-2xl" style={{ 
             padding: '50px 40px',
             borderRadius: '30px',
-            color: 'white',
-            boxShadow: '0 20px 40px -10px rgba(67, 56, 202, 0.3)',
+            background: 'var(--bg-secondary)',
+            color: 'var(--text-primary)',
+            border: '1px solid var(--border)',
             position: 'relative',
             overflow: 'hidden'
           }}>
             {/* Decorative background circle */}
             <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '200px', height: '200px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', filter: 'blur(30px)' }} />
             
-            <h1 style={{ fontSize: '2.8rem', fontWeight: '900', letterSpacing: '-1px' }}>
-              {isAdmin ? '⚡ Admin Control Center' : '🎓 Creator Studio'}
-            </h1>
-            <p style={{ opacity: 0.9, fontSize: '1.1rem', marginTop: '10px', maxWidth: '600px' }}>
-              Manage your educational ecosystem with precision and power.
-            </p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ flex: 1 }}>
+                <h1 style={{ fontSize: '2.8rem', fontWeight: '900', letterSpacing: '-1px' }}>
+                  {isAdmin ? '⚡ Admin Control Center' : '🎓 Creator Studio'}
+                </h1>
+                <p style={{ opacity: 0.9, fontSize: '1.1rem', marginTop: '10px', maxWidth: '600px' }}>
+                  Manage your educational ecosystem with precision and power.
+                </p>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
+                <img 
+                  src={formatAssetUrl(user?.avatar) || "https://cdn-icons-png.flaticon.com/128/3177/3177440.png"} 
+                  style={{ width: '100px', height: '100px', borderRadius: '24px', objectFit: 'cover', border: '4px solid rgba(255,255,255,0.3)', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }} 
+                  alt="admin-avatar" 
+                />
+                <span style={{ fontSize: '0.8rem', fontWeight: '900', background: 'rgba(255,255,255,0.2)', padding: '4px 12px', borderRadius: '100px', textTransform: 'uppercase' }}>{user?.role} Mode</span>
+              </div>
+            </div>
           </div>
 
           <div className="glass-card" style={{ 
@@ -556,7 +568,7 @@ const AdminDashboard = () => {
           {courses.map(c => (
             <div key={c._id} className="glass-card admin-card-glow" style={{ padding: '24px', transition: 'all 0.3s ease' }}>
               <div onClick={() => navigate(`/courses/${c._id}`)} style={{ cursor: 'pointer', position: 'relative', width: '100%', height: '180px', borderRadius: '16px', overflow: 'hidden', marginBottom: '20px', boxShadow: '0 8px 16px -4px rgba(0,0,0,0.1)' }}>
-                <img src={c.thumbnail?.startsWith('http') ? c.thumbnail : `${ASSET_URL}${c.thumbnail}`} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }} onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'} onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'} alt={c.title} />
+                <img src={formatAssetUrl(c.thumbnail)} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }} onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'} onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'} alt={c.title} />
                 <div style={{ position: 'absolute', top: '12px', right: '12px' }}>
                    <Badge color={c.isBatch ? '#f59e0b' : '#10b981'}>{c.isBatch ? 'BATCH' : 'VOD'}</Badge>
                 </div>
@@ -716,7 +728,7 @@ const AdminDashboard = () => {
                       <td style={{ padding: '14px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <img 
-                            src={u.avatar ? (u.avatar.startsWith('http') ? u.avatar : `${ASSET_URL}${u.avatar}`) : "https://cdn-icons-png.flaticon.com/128/3177/3177440.png"} 
+                            src={formatAssetUrl(u.avatar) || "https://cdn-icons-png.flaticon.com/128/3177/3177440.png"} 
                             style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border)' }} 
                             alt={u.name} 
                           />
@@ -813,7 +825,7 @@ const AdminDashboard = () => {
                     {item.videoUrl
                       ? <iframe src={item.videoUrl} style={{ width: '100%', height: '180px', border: 'none', display: 'block' }} title={item.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
                       : item.thumbnail
-                        ? <img src={item.thumbnail?.startsWith('http') ? item.thumbnail : `${ASSET_URL}${item.thumbnail}`} style={{ width: '100%', height: '180px', objectFit: 'cover' }} alt={item.title} />
+                        ? <img src={formatAssetUrl(item.thumbnail)} style={{ width: '100%', height: '180px', objectFit: 'cover' }} alt={item.title} />
                         : <div style={{ width: '100%', height: '180px', background: 'var(--bg-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Video size={48} style={{ color: 'var(--text-secondary)' }} /></div>
                     }
                     <div style={{ position: 'absolute', top: '8px', right: '8px', display: 'flex', gap: '6px' }}>

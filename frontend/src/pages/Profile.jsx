@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from 'react';
-import API, { ASSET_URL } from '../services/api';
+import API, { ASSET_URL, formatAssetUrl } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Link, useLocation } from 'react-router-dom';
 import { GraduationCap, BookOpen, Clock, Heart, Award, ArrowRight, Video, User as UserIcon, Briefcase, Mail, Phone, Github, Linkedin, Twitter, Save, Edit3, X, CheckCircle, Star, Loader2, Image as ImageIcon, Lock, ShieldCheck, AlertCircle, TrendingUp, Code, Activity } from 'lucide-react';
@@ -419,19 +419,7 @@ const Profile = () => {
                                     onClick={() => setIsAvatarModalOpen(true)}
                                 >
                                     <img 
-                                        src={(() => {
-                                            if (!profileData.avatar) return "https://cdn-icons-png.flaticon.com/128/3177/3177440.png";
-                                            let url = profileData.avatar;
-                                            // Transform Google Drive links to direct view
-                                            if (url.includes('drive.google.com')) {
-                                                const id = url.split('/d/')[1]?.split('/')[0] || url.split('id=')[1]?.split('&')[0];
-                                                if (id) return `https://lh3.googleusercontent.com/d/${id}`;
-                                            }
-                                            if (url.startsWith('http')) return url;
-                                            // Handle relative paths and avoid double uploads
-                                            const cleanPath = url.replace(/^\/?uploads\/?/, '');
-                                            return `${ASSET_URL}${cleanPath}`;
-                                        })()} 
+                                        src={formatAssetUrl(profileData.avatar) || "https://cdn-icons-png.flaticon.com/128/3177/3177440.png"} 
                                         style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', border: '8px solid var(--bg-primary)', boxShadow: '0 20px 40px -10px rgba(0,0,0,0.2)' }} 
                                         alt={profileData.name} 
                                     />
@@ -609,14 +597,7 @@ const Profile = () => {
                             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                                 <p style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '10px' }}>Preview</p>
                                 <img 
-                                    src={(() => {
-                                        let url = avatarUrlInput;
-                                        if (url.includes('drive.google.com')) {
-                                            const id = url.split('/d/')[1]?.split('/')[0] || url.split('id=')[1]?.split('&')[0];
-                                            if (id) return `https://lh3.googleusercontent.com/d/${id}`;
-                                        }
-                                        return url;
-                                    })()}
+                                    src={formatAssetUrl(avatarUrlInput)}
                                     onError={(e) => { e.target.style.display = 'none'; }}
                                     onLoad={(e) => { e.target.style.display = 'inline-block'; }}
                                     style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover', border: '4px solid var(--accent-primary)', display: 'none' }}
