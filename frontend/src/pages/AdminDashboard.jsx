@@ -438,7 +438,8 @@ const AdminDashboard = () => {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
                 <img 
-                  src={formatAssetUrl(user?.avatar) || "https://cdn-icons-png.flaticon.com/128/3177/3177440.png"} 
+                  src={formatAssetUrl(user?.avatar)} 
+                  onError={(e) => { e.target.src = "https://cdn-icons-png.flaticon.com/128/3177/3177440.png"; }}
                   style={{ width: '100px', height: '100px', borderRadius: '24px', objectFit: 'cover', border: '4px solid rgba(255,255,255,0.3)', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }} 
                   alt="admin-avatar" 
                 />
@@ -568,7 +569,7 @@ const AdminDashboard = () => {
           {courses.map(c => (
             <div key={c._id} className="glass-card admin-card-glow" style={{ padding: '24px', transition: 'all 0.3s ease' }}>
               <div onClick={() => navigate(`/courses/${c._id}`)} style={{ cursor: 'pointer', position: 'relative', width: '100%', height: '180px', borderRadius: '16px', overflow: 'hidden', marginBottom: '20px', boxShadow: '0 8px 16px -4px rgba(0,0,0,0.1)' }}>
-                <img src={formatAssetUrl(c.thumbnail)} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }} onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'} onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'} alt={c.title} />
+                <img src={formatAssetUrl(c.thumbnail)} onError={(e) => { e.target.src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop"; }} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }} onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'} onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'} alt={c.title} />
                 <div style={{ position: 'absolute', top: '12px', right: '12px' }}>
                    <Badge color={c.isBatch ? '#f59e0b' : '#10b981'}>{c.isBatch ? 'BATCH' : 'VOD'}</Badge>
                 </div>
@@ -634,7 +635,12 @@ const AdminDashboard = () => {
                 <div key={s._id} className="glass-card admin-card-glow" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '15px', background: 'var(--bg-secondary)', border: '1px solid var(--border)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--accent-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800' }}>{s.student?.name?.[0] || '?'}</div>
+                      <img 
+                         src={formatAssetUrl(s.student?.avatar)} 
+                         onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                         style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} 
+                      />
+                      <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--accent-primary)', color: 'white', display: 'none', alignItems: 'center', justifyContent: 'center', fontWeight: '800' }}>{s.student?.name?.[0] || '?'}</div>
                       <div>
                         <p style={{ fontWeight: '800', lineHeight: 1.2 }}>{s.student?.name || 'Unknown'}</p>
                         <p style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Course Enrollment</p>
@@ -695,6 +701,28 @@ const AdminDashboard = () => {
               ))}
             </div>
           )}
+
+          {/* Recent Activity Mini-Section */}
+          {isAdmin && stats?.recentUsers && (
+            <div className="glass-card" style={{ padding: '30px', marginBottom: '40px', border: '1px solid var(--glass-border)' }}>
+               <h3 style={{ fontSize: '1.2rem', fontWeight: '900', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}><Users size={20} color="var(--accent-primary)" /> Recently Onboarded Explorers</h3>
+               <div style={{ display: 'flex', gap: '20px', overflowX: 'auto', paddingBottom: '10px' }}>
+                 {stats.recentUsers.map(u => (
+                   <div key={u._id} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--bg-accent)', padding: '10px 20px', borderRadius: '16px', flexShrink: 0 }}>
+                     <img 
+                       src={formatAssetUrl(u.avatar)} 
+                       onError={(e) => { e.target.src = "https://cdn-icons-png.flaticon.com/128/3177/3177440.png"; }}
+                       style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' }} 
+                     />
+                     <div>
+                       <p style={{ fontSize: '0.85rem', fontWeight: '800', lineHeight: 1 }}>{u.name}</p>
+                       <span style={{ fontSize: '0.65rem', fontWeight: '700', color: roleColor[u.role], textTransform: 'uppercase' }}>{u.role}</span>
+                     </div>
+                   </div>
+                 ))}
+               </div>
+            </div>
+          )}
           <div className="glass-card" style={{ padding: '30px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h2 style={{ ...sectionTitle, marginBottom: 0 }}><Shield /> User Management</h2>
@@ -728,7 +756,8 @@ const AdminDashboard = () => {
                       <td style={{ padding: '14px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <img 
-                            src={formatAssetUrl(u.avatar) || "https://cdn-icons-png.flaticon.com/128/3177/3177440.png"} 
+                            src={formatAssetUrl(u.avatar)} 
+                            onError={(e) => { e.target.src = "https://cdn-icons-png.flaticon.com/128/3177/3177440.png"; }}
                             style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border)' }} 
                             alt={u.name} 
                           />
@@ -843,7 +872,7 @@ const AdminDashboard = () => {
                     )}
                     {item.videoFile && (
                       <div style={{ marginBottom: '10px' }}>
-                        <video src={`${ASSET_URL}${item.videoFile}`} controls style={{ width: '100%', borderRadius: '8px', maxHeight: '120px' }} />
+                        <video src={formatAssetUrl(item.videoFile)} controls style={{ width: '100%', borderRadius: '8px', maxHeight: '120px' }} />
                       </div>
                     )}
                     <div style={{ display: 'flex', gap: '8px' }}>

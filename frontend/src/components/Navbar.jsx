@@ -139,7 +139,8 @@ const Navbar = () => {
                                 >
                                     <div className="relative">
                                         <img 
-                                             src={formatAssetUrl(user.avatar) || "https://cdn-icons-png.flaticon.com/128/3177/3177440.png"} 
+                                             src={formatAssetUrl(user.avatar)} 
+                                             onError={(e) => { e.target.src = "https://cdn-icons-png.flaticon.com/128/3177/3177440.png"; e.target.onError = null; }}
                                              className="w-10 h-10 rounded-xl object-cover border-2 border-indigo-600/20 shadow-lg group-hover:border-indigo-500/50 transition-colors"
                                             alt="avatar" 
                                         />
@@ -247,17 +248,20 @@ const Navbar = () => {
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        className="absolute top-full left-4 right-4 mt-2 p-6 bg-white dark:bg-slate-900 rounded-3xl border border-white/20 dark:border-white/10 shadow-2xl lg:hidden"
+                        className="absolute top-full left-4 right-4 mt-2 p-8 bg-[#0F172A] rounded-3xl border border-slate-800 shadow-2xl lg:hidden z-[2000] overflow-hidden"
                     >
-                        <div className="flex flex-col gap-4">
+                        {/* Mobile menu background flare */}
+                        <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/10 blur-3xl rounded-full" />
+                        
+                        <div className="flex flex-col gap-5 relative z-10">
                             {navLinks.map((link) => (
                                 <Link 
                                     key={link.path} 
                                     to={link.path}
                                     onClick={() => setMobileMenuOpen(false)}
                                     className={`
-                                        text-lg font-bold p-2 transition-colors
-                                        ${location.pathname === link.path ? 'text-indigo-600' : 'text-slate-600 dark:text-slate-400'}
+                                        text-xl font-bold p-2 transition-colors
+                                        ${location.pathname === link.path ? 'text-indigo-400' : 'text-slate-400 hover:text-white'}
                                     `}
                                 >
                                     {link.name}
@@ -266,14 +270,17 @@ const Navbar = () => {
                             <Link 
                                 to={user ? "/profile" : "/login"}
                                 onClick={() => setMobileMenuOpen(false)}
-                                className="mt-4 p-4 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center gap-3"
+                                className="mt-4 p-5 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between group active:scale-95 transition-all"
                             >
-                                <div className="p-2 bg-indigo-600 rounded-xl text-white">
-                                    <UserIcon size={20} />
+                                <div className="flex items-center gap-4">
+                                    <div className="p-2.5 bg-indigo-500/20 rounded-xl text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-all">
+                                        <UserIcon size={20} />
+                                    </div>
+                                    <span className="font-bold text-white text-lg">
+                                        {user ? 'My Dashboard' : 'Account Access'}
+                                    </span>
                                 </div>
-                                <span className="font-bold text-slate-800 dark:text-white">
-                                    {user ? 'My Profile' : 'Sign In'}
-                                </span>
+                                <ChevronDown className="-rotate-90 text-slate-500" size={18} />
                             </Link>
                         </div>
                     </motion.div>

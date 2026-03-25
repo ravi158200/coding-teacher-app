@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Content = require('../models/Content');
 const { protect, admin, teacher } = require('../middleware/auth');
-const upload = require('../middleware/upload');
+const { uploadResource } = require('../config/cloudinary');
 
 // ─── PUBLIC ROUTES ───────────────────────────────────────────────────────────
 
@@ -62,41 +62,43 @@ router.post('/', protect, teacher, async (req, res) => {
     }
 });
 
-// Admin/Teacher: Upload video file for content
-router.post('/:id/upload-video', protect, teacher, upload.single('file'), async (req, res) => {
+router.post('/:id/upload-video', protect, teacher, uploadResource.single('file'), async (req, res) => {
     try {
         const item = await Content.findById(req.params.id);
         if (!item) return res.status(404).json({ message: 'Content not found' });
-        item.videoFile = `/uploads/videos/${req.file.filename}`;
-        if (!item.thumbnail) item.thumbnail = '';
+        if (!req.file) return res.status(400).json({ message: 'No video file found' });
+        
+        item.videoFile = req.file.path; // Cloudinary URL
         await item.save();
-        res.json({ message: 'Video uploaded', videoFile: item.videoFile });
+        res.json({ message: 'Video uploaded successfully', videoFile: item.videoFile });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 });
 
-// Admin/Teacher: Upload notes (PDF) for content
-router.post('/:id/upload-pdf', protect, teacher, upload.single('file'), async (req, res) => {
+router.post('/:id/upload-pdf', protect, teacher, uploadResource.single('file'), async (req, res) => {
     try {
         const item = await Content.findById(req.params.id);
         if (!item) return res.status(404).json({ message: 'Content not found' });
-        item.pdfFile = `/uploads/notes/${req.file.filename}`;
+        if (!req.file) return res.status(400).json({ message: 'No PDF file found' });
+        
+        item.pdfFile = req.file.path; // Cloudinary URL
         await item.save();
-        res.json({ message: 'Notes uploaded', pdfFile: item.pdfFile });
+        res.json({ message: 'Notes uploaded successfully', pdfFile: item.pdfFile });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 });
 
-// Admin/Teacher: Upload thumbnail for content
-router.post('/:id/upload-thumbnail', protect, teacher, upload.single('file'), async (req, res) => {
+router.post('/:id/upload-thumbnail', protect, teacher, uploadResource.single('file'), async (req, res) => {
     try {
         const item = await Content.findById(req.params.id);
         if (!item) return res.status(404).json({ message: 'Content not found' });
-        item.thumbnail = `/uploads/${req.file.filename}`;
+        if (!req.file) return res.status(400).json({ message: 'No image file found' });
+        
+        item.thumbnail = req.file.path; // Cloudinary URL
         await item.save();
-        res.json({ message: 'Thumbnail uploaded', thumbnail: item.thumbnail });
+        res.json({ message: 'Thumbnail uploaded successfully', thumbnail: item.thumbnail });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

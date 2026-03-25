@@ -141,7 +141,7 @@ const Home = () => {
                         {courses.map((course) => (
                             <Link to={`/courses/${course._id}`} key={course._id} style={{ textDecoration: 'none', color: 'inherit' }}>
                                 <div className="glass-card fade-in" style={{ overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
-                                    <img src={course.thumbnail} style={{ width: '100%', height: '200px', objectFit: 'cover' }} alt={course.title} />
+                                    <img src={course.thumbnail} onError={(e) => { e.target.src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop"; }} style={{ width: '100%', height: '200px', objectFit: 'cover' }} alt={course.title} />
                                     <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
                                             <span className="badge badge-primary">{course.category}</span>
@@ -190,7 +190,7 @@ const Home = () => {
                         {batches.map((batch, i) => (
                             <div key={batch._id} className="glass-card fade-in" style={{ overflow: 'hidden', border: i === 0 ? '2px solid var(--accent-primary)' : 'none' }}>
                                 <div style={{ position: 'relative' }}>
-                                    <img src={batch.thumbnail} style={{ width: '100%', height: '240px', objectFit: 'cover' }} />
+                                    <img src={batch.thumbnail} onError={(e) => { e.target.src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop"; }} style={{ width: '100%', height: '240px', objectFit: 'cover' }} />
                                     {batch.originalPrice && (
                                         <>
                                             <div style={{ position: 'absolute', top: '20px', right: '20px', background: '#ef4444', color: 'white', padding: '5px 15px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: '800', zIndex: 10 }}>
@@ -274,7 +274,7 @@ const Home = () => {
                                 return (
                                     <div key={cls._id} className="glass-card fade-in" style={{ padding: '0', overflow: 'hidden', borderLeft: isLive ? '4px solid var(--success)' : 'none' }}>
                                         <div style={{ position: 'relative' }}>
-                                            <img src={cls.thumbnail || class1} style={{ width: '100%', height: '180px', objectFit: 'cover' }} alt={cls.title} />
+                                            <img src={cls.thumbnail || class1} onError={(e) => { e.target.src=class1; }} style={{ width: '100%', height: '180px', objectFit: 'cover' }} alt={cls.title} />
                                             {isLive && (
                                                 <div style={{ position: 'absolute', top: '15px', left: '15px', background: '#ef4444', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '0.7rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                     <div style={{ width: '8px', height: '8px', background: 'white', borderRadius: '50%', boxShadow: '0 0 10px white' }} /> LIVE NOW

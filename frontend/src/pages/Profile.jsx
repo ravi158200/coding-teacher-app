@@ -113,10 +113,14 @@ const Profile = () => {
         try {
             await API.put('/users/profile', { avatar: url });
             setProfileData(prev => ({ ...prev, avatar: url }));
-            const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-            const updatedUserInfo = { ...userInfo, avatar: url };
-            localStorage.setItem('userInfo', JSON.stringify(updatedUserInfo));
-            setUser(updatedUserInfo);
+            
+            // Fix: Safely update user in context and localStorage without losing token
+            const updatedUser = { ...user, avatar: url };
+            localStorage.setItem('userInfo', JSON.stringify(updatedUser));
+            setUser(updatedUser);
+            
+            setIsAvatarModalOpen(false);
+            setAvatarUrlInput('');
         } catch (error) {
             alert('Failed to update avatar');
         } finally {
@@ -196,10 +200,13 @@ const Profile = () => {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             setProfileData(prev => ({ ...prev, avatar: data.avatar }));
-            const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-            const updatedUserInfo = { ...userInfo, avatar: data.avatar };
-            localStorage.setItem('userInfo', JSON.stringify(updatedUserInfo));
-            setUser(updatedUserInfo);
+            
+            // Fix: Safely update user in context and localStorage without losing token
+            const updatedUser = { ...user, avatar: data.avatar };
+            localStorage.setItem('userInfo', JSON.stringify(updatedUser));
+            setUser(updatedUser);
+            
+            setIsAvatarModalOpen(false);
         } catch (error) {
             alert('Avatar upload failed');
         } finally {
@@ -312,7 +319,7 @@ const Profile = () => {
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '30px' }}>
                                     {enrolledBatches.map(batch => (
                                         <div key={batch._id} className="glass-card fade-in" style={{ padding: '25px', display: 'flex', gap: '20px', alignItems: 'center', borderLeft: '6px solid var(--accent-primary)', background: 'var(--bg-primary)' }}>
-                                            <img src={batch.thumbnail} style={{ width: '110px', height: '110px', borderRadius: '18px', objectFit: 'cover', boxShadow: '0 8px 20px rgba(0,0,0,0.1)' }} />
+                                            <img src={batch.thumbnail} onError={(e) => { e.target.src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop"; }} style={{ width: '110px', height: '110px', borderRadius: '18px', objectFit: 'cover', boxShadow: '0 8px 20px rgba(0,0,0,0.1)' }} />
                                             <div style={{ flex: 1 }}>
                                                 <h3 style={{ fontSize: '1.3rem', marginBottom: '12px', fontWeight: '800' }}>{batch.title}</h3>
                                                 <Link to={`/lessons/${batch._id}/0`}>
@@ -339,7 +346,7 @@ const Profile = () => {
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '30px' }}>
                                     {enrolledStandard.map(course => (
                                         <div key={course._id} className="glass-card fade-in" style={{ padding: '25px', display: 'flex', gap: '20px', alignItems: 'center', borderLeft: '6px solid #10b981', background: 'var(--bg-primary)' }}>
-                                            <img src={course.thumbnail} style={{ width: '110px', height: '110px', borderRadius: '18px', objectFit: 'cover', boxShadow: '0 8px 20px rgba(0,0,0,0.1)' }} />
+                                            <img src={course.thumbnail} onError={(e) => { e.target.src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop"; }} style={{ width: '110px', height: '110px', borderRadius: '18px', objectFit: 'cover', boxShadow: '0 8px 20px rgba(0,0,0,0.1)' }} />
                                             <div style={{ flex: 1 }}>
                                                 <h3 style={{ fontSize: '1.3rem', marginBottom: '12px', fontWeight: '800' }}>{course.title}</h3>
                                                 <Link to={`/courses/${course._id}`}>
@@ -418,11 +425,19 @@ const Profile = () => {
                                     style={{ position: 'relative', width: '180px', height: '180px', margin: '0 auto 30px', cursor: 'pointer' }}
                                     onClick={() => setIsAvatarModalOpen(true)}
                                 >
-                                    <img 
-                                        src={formatAssetUrl(profileData.avatar) || "https://cdn-icons-png.flaticon.com/128/3177/3177440.png"} 
-                                        style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', border: '8px solid var(--bg-primary)', boxShadow: '0 20px 40px -10px rgba(0,0,0,0.2)' }} 
-                                        alt={profileData.name} 
-                                    />
+                                    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                                        {avatarLoading && (
+                                            <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.4)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+                                                <Loader2 className="spin" />
+                                            </div>
+                                        )}
+                                        <img 
+                                            src={formatAssetUrl(profileData.avatar)} 
+                                            onError={(e) => { e.target.src = "https://cdn-icons-png.flaticon.com/128/3177/3177440.png"; }}
+                                            style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', border: '8px solid var(--bg-primary)', boxShadow: '0 20px 40px -10px rgba(0,0,0,0.2)', opacity: avatarLoading ? 0.5 : 1 }} 
+                                            alt={profileData.name} 
+                                        />
+                                    </div>
                                     <div style={{ position: 'absolute', bottom: '10px', right: '10px', background: 'var(--accent-primary)', color: 'white', padding: '10px', borderRadius: '50%', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
                                         <Edit3 size={20} />
                                     </div>
@@ -541,7 +556,7 @@ const Profile = () => {
                                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '30px' }}>
                                             {enrolledBatches.map(batch => (
                                                 <div key={batch._id} className="glass-card fade-in" style={{ padding: '25px', display: 'flex', gap: '20px', alignItems: 'center', borderLeft: '6px solid var(--accent-primary)', background: 'var(--bg-primary)' }}>
-                                                    <img src={batch.thumbnail} style={{ width: '110px', height: '110px', borderRadius: '18px', objectFit: 'cover', boxShadow: '0 8px 20px rgba(0,0,0,0.1)' }} />
+                                                    <img src={batch.thumbnail} onError={(e) => { e.target.src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop"; }} style={{ width: '110px', height: '110px', borderRadius: '18px', objectFit: 'cover', boxShadow: '0 8px 20px rgba(0,0,0,0.1)' }} />
                                                     <div style={{ flex: 1 }}>
                                                         <h3 style={{ fontSize: '1.3rem', marginBottom: '12px', fontWeight: '800' }}>{batch.title}</h3>
                                                         <Link to={`/lessons/${batch._id}/0`}>
@@ -568,7 +583,7 @@ const Profile = () => {
                                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '30px' }}>
                                             {enrolledStandard.map(course => (
                                                 <div key={course._id} className="glass-card fade-in" style={{ padding: '25px', display: 'flex', gap: '20px', alignItems: 'center', borderLeft: '6px solid #10b981', background: 'var(--bg-primary)' }}>
-                                                    <img src={course.thumbnail} style={{ width: '110px', height: '110px', borderRadius: '18px', objectFit: 'cover', boxShadow: '0 8px 20px rgba(0,0,0,0.1)' }} />
+                                                    <img src={course.thumbnail} onError={(e) => { e.target.src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop"; }} style={{ width: '110px', height: '110px', borderRadius: '18px', objectFit: 'cover', boxShadow: '0 8px 20px rgba(0,0,0,0.1)' }} />
                                                     <div style={{ flex: 1 }}>
                                                         <h3 style={{ fontSize: '1.3rem', marginBottom: '12px', fontWeight: '800' }}>{course.title}</h3>
                                                         <Link to={`/courses/${course._id}`}>
@@ -592,53 +607,66 @@ const Profile = () => {
                     <div className="glass-card" style={{ maxWidth: '600px', width: '100%', padding: '40px', background: 'var(--bg-primary)', position: 'relative' }} onClick={e => e.stopPropagation()}>
                         <button style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => setIsAvatarModalOpen(false)}><X /></button>
                         <h2 style={{ fontSize: '1.8rem', fontWeight: '900', marginBottom: '10px' }}>Choose Profile Picture</h2>
-                        {/* Live Preview */}
-                        {avatarUrlInput.length > 5 && (
-                            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                                <p style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '10px' }}>Preview</p>
-                                <img 
-                                    src={formatAssetUrl(avatarUrlInput)}
-                                    onError={(e) => { e.target.style.display = 'none'; }}
-                                    onLoad={(e) => { e.target.style.display = 'inline-block'; }}
-                                    style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover', border: '4px solid var(--accent-primary)', display: 'none' }}
-                                    alt="preview"
-                                />
+                        {/* Preset Avatars Section */}
+                        <div style={{ marginBottom: '30px' }}>
+                            <label style={{ display: 'block', marginBottom: '15px', fontSize: '1rem', fontWeight: '800', color: 'var(--accent-primary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Quick Presets</label>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '15px' }}>
+                                {presetAvatars.map((url, idx) => (
+                                    <div 
+                                        key={idx} 
+                                        onClick={() => handleAvatarSelect(url)}
+                                        style={{ 
+                                            position: 'relative', 
+                                            cursor: 'pointer', 
+                                            borderRadius: '20px', 
+                                            padding: '8px', 
+                                            background: profileData.avatar === url ? 'var(--accent-primary)15' : 'var(--bg-accent)',
+                                            border: `2px solid ${profileData.avatar === url ? 'var(--accent-primary)' : 'transparent'}`,
+                                            transition: 'all 0.3s ease'
+                                        }}
+                                        onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-5px)'}
+                                        onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                                    >
+                                        <img src={url} style={{ width: '100%', height: 'auto', borderRadius: '12px' }} alt={`preset-${idx}`} />
+                                        {profileData.avatar === url && (
+                                            <div style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'var(--success)', color: 'white', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                <CheckCircle size={12} fill="white" color="var(--success)" />
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
                             </div>
-                        )}
+                        </div>
 
-                        <div style={{ marginBottom: '20px' }}>
-                            <label style={{ display: 'block', marginBottom: '10px', fontSize: '0.9rem', fontWeight: '700', color: 'var(--text-secondary)' }}>Add via Drive/Cloud Link</label>
+                        <div style={{ position: 'relative', textAlign: 'center', marginBottom: '30px' }}>
+                            <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, height: '1px', background: 'var(--border)', zIndex: 0 }} />
+                            <span style={{ position: 'relative', background: 'var(--bg-primary)', padding: '0 20px', color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: '900', zIndex: 1 }}>OR USE CUSTOM LINK</span>
+                        </div>
+
+                        <div style={{ marginBottom: '25px' }}>
                             <div style={{ display: 'flex', gap: '10px' }}>
                                 <input 
                                     className="input-field" 
-                                    placeholder="Paste your photo URL here..." 
+                                    placeholder="Paste your image URL (Google Drive, Dropbox, etc.)" 
                                     style={{ flex: 1 }}
                                     value={avatarUrlInput}
                                     onChange={(e) => setAvatarUrlInput(e.target.value)}
                                     onKeyPress={(e) => {
                                         if (e.key === 'Enter' && avatarUrlInput) {
                                             handleAvatarSelect(avatarUrlInput);
-                                            setIsAvatarModalOpen(false);
-                                            setAvatarUrlInput('');
                                         }
                                     }}
                                 />
                                 <button 
-                                    onClick={() => {
-                                        if (avatarUrlInput) {
-                                            handleAvatarSelect(avatarUrlInput);
-                                            setIsAvatarModalOpen(false);
-                                            setAvatarUrlInput('');
-                                        }
-                                    }}
+                                    onClick={() => avatarUrlInput && handleAvatarSelect(avatarUrlInput)}
                                     className="btn btn-primary" 
-                                    style={{ padding: '0 20px', opacity: avatarUrlInput ? 1 : 0.5 }}
+                                    style={{ padding: '0 25px' }}
                                     disabled={!avatarUrlInput}
                                 >
                                     Apply
                                 </button>
                             </div>
-                            <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '8px' }}>Paste a direct link from Google Drive, Dropbox, or any web host.</p>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '8px', fontWeight: '500' }}>Direct links from Google Drive, Dropbox, or any public image host work perfectly.</p>
                         </div>
 
                         <div style={{ position: 'relative', textAlign: 'center', marginBottom: '10px' }}>
