@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: coding-teacher-backend
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    rootDirectory: backend
+    envVars:
+      - key: MONGO_URI
+        sync: false # Set this in Render Dashboard
+      - key: JWT_SECRET
+        sync: false # Set this in Render Dashboard
+      - key: PORT
+        value: 5003
+      - key: NODE_ENV
+        value: production
