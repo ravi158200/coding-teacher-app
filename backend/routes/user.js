@@ -3,33 +3,34 @@ const router = express.Router();
 const User = require('../models/User');
 const Course = require('../models/Course');
 const { protect, admin } = require('../middleware/auth');
-const multer = require('multer');
-const path = require('path');
+// Cloudinary Upload Configuration
+const { uploadAvatar } = require('../config/cloudinary');
 
-// Configure Multer for Avatar Uploads
-const storage = multer.diskStorage({
-    destination(req, file, cb) {
-        cb(null, 'uploads/avatars/');
-    },
-    filename(req, file, cb) {
-        cb(null, `${req.user._id}-${Date.now()}${path.extname(file.originalname)}`);
-    }
-});
-const upload = multer({ storage });
-
-// Upload Avatar
-router.post('/upload-avatar', protect, upload.single('avatar'), async (req, res) => {
+// @route   POST /api/users/upload-avatar
+// @desc    Upload user avatar to Cloudinary
+// @access  Private
+router.post('/upload-avatar', protect, uploadAvatar.single('avatar'), async (req, res) => {
     try {
-        const user = await User.findById(req.user._id);
-        if (user) {
-            user.avatar = `/uploads/avatars/${req.file.filename}`;
-            await user.save();
-            res.json({ avatar: user.avatar });
-        } else {
-            res.status(404).json({ message: 'User not found' });
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' });
         }
+        
+        // req.file.path will be the Cloudinary URL
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        
+        user.avatar = req.file.path;
+        await user.save();
+        
+        res.json({
+            message: 'Profile picture updated!',
+            avatar: user.avatar
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Upload Error:', error);
+        res.status(500).json({ message: 'Server error during upload' });
     }
 });
 

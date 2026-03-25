@@ -3,7 +3,7 @@ const router = express.Router();
 const Course = require('../models/Course');
 const { protect, admin, teacher } = require('../middleware/auth');
 const User = require('../models/User');
-const upload = require('../middleware/upload');
+const { uploadCourse, uploadResource } = require('../config/cloudinary');
 
 // Get all courses
 router.get('/', async (req, res) => {
@@ -57,22 +57,21 @@ router.post('/', protect, teacher, async (req, res) => {
 });
 
 // Teacher: Upload Course Thumbnail Image
-router.post('/:id/thumbnail', protect, teacher, upload.single('file'), async (req, res) => {
+router.post('/:id/thumbnail', protect, teacher, uploadCourse.single('file'), async (req, res) => {
     try {
         const course = await Course.findById(req.params.id);
         if (!course) return res.status(404).json({ message: 'Course not found' });
         
-        const thumbnailUrl = `/uploads/${req.file.filename}`;
-        course.thumbnail = thumbnailUrl;
+        course.thumbnail = req.file.path; // Cloudinary URL
         await course.save();
-        res.json({ message: 'Thumbnail uploaded successfully', thumbnailUrl });
+        res.json({ message: 'Thumbnail uploaded successfully', thumbnailUrl: course.thumbnail });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 });
 
 // Teacher: Upload File to Lesson (Video or PDF)
-router.post('/:id/lessons/:lessonIdx/upload', protect, teacher, upload.single('file'), async (req, res) => {
+router.post('/:id/lessons/:lessonIdx/upload', protect, teacher, uploadResource.single('file'), async (req, res) => {
     try {
         const course = await Course.findById(req.params.id);
         if (!course) return res.status(404).json({ message: 'Course not found' });
@@ -80,7 +79,7 @@ router.post('/:id/lessons/:lessonIdx/upload', protect, teacher, upload.single('f
         const lesson = course.lessons[req.params.lessonIdx];
         if (!lesson) return res.status(404).json({ message: 'Lesson not found' });
 
-        const fileUrl = `/uploads/${req.file.mimetype.startsWith('video/') ? 'videos' : 'notes'}/${req.file.filename}`;
+        const fileUrl = req.file.path; // Cloudinary URL
         
         if (req.file.mimetype.startsWith('video/')) {
             lesson.videoFile = fileUrl;
@@ -96,13 +95,13 @@ router.post('/:id/lessons/:lessonIdx/upload', protect, teacher, upload.single('f
 });
 
 // Student: Upload Submission (Video or PDF)
-router.post('/:id/submissions', protect, upload.single('file'), async (req, res) => {
+router.post('/:id/submissions', protect, uploadResource.single('file'), async (req, res) => {
     try {
         const { lessonIdx, comment } = req.body;
         const course = await Course.findById(req.params.id);
         if (!course) return res.status(404).json({ message: 'Course not found' });
 
-        const fileUrl = `/uploads/${req.file.mimetype.startsWith('video/') ? 'videos' : 'notes'}/${req.file.filename}`;
+        const fileUrl = req.file.path; // Cloudinary URL
         const fileType = req.file.mimetype.startsWith('video/') ? 'video' : 'pdf';
 
         course.submissions.push({
