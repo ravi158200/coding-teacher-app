@@ -150,16 +150,17 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
   height: 100%;
   z-index: -1;
+  background-color: var(--bg-primary); 
+  opacity: 1;
+}
+
+[data-theme='dark'] .mesh-bg {
   background-image: 
     radial-gradient(at 0% 0%, hsla(253, 80%, 15%, 1) 0, transparent 50%), 
     radial-gradient(at 50% 0%, hsla(225, 80%, 20%, 1) 0, transparent 50%), 
     radial-gradient(at 100% 0%, hsla(339, 80%, 20%, 1) 0, transparent 50%),
     radial-gradient(at 100% 100%, hsla(225, 80%, 15%, 1) 0, transparent 50%),
     radial-gradient(at 0% 100%, hsla(253, 80%, 15%, 1) 0, transparent 50%);
-  opacity: 0.25;
-}
-
-[data-theme='dark'] .mesh-bg {
   opacity: 0.4;
 }
 

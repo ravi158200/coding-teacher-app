@@ -44,7 +44,7 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <Router>
-          <div className="min-h-screen bg-[var(--bg-primary)] dark:bg-slate-950 flex flex-col transition-colors duration-500 relative">
+          <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col transition-colors duration-500 relative">
             {/* Clean Background Layout */}
             
             <div className="relative z-10 flex flex-col flex-grow w-full">
@@ -76,7 +76,7 @@ function App() {
               <FloatingAdminBtn />
             </main>
 
-            <footer className="bg-[var(--bg-primary)] dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 pt-40 pb-24 px-6 md:px-12 lg:px-20 transition-colors duration-600">
+            <footer className="bg-[var(--bg-primary)] border-t border-slate-200 dark:border-slate-800 pt-40 pb-24 px-6 md:px-12 lg:px-20 transition-colors duration-600">
               <div className="w-full max-w-[1900px] mx-auto">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-y-20 gap-x-12 lg:gap-32 mb-24">
                   {/* Brand Column */}
